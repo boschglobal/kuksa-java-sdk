@@ -1,0 +1,42 @@
+[versions]
+androidGradlePlugin = "8.3.2" # Check with detekt table first: https://detekt.dev/docs/introduction/compatibility/
+detekt = "1.23.6"
+dockerJavaCore = "3.4.1"
+dokka = "1.9.10"
+kotlin = "1.9.22"
+tomcatAnnotations = "6.0.53"
+ktlint = "0.0" # Maintained inside ktlint.gradle.kts
+grpc = "1.65.1"
+protobufGradlePlugin = "0.9.4"
+protobuf = "3.25.3"
+kotest = "5.7.2"
+mockk = "1.13.7"
+kotlinxCoroutines = "1.7.3"
+jvmTarget = "17"
+
+[libraries]
+docker-java-core = { module = "com.github.docker-java:docker-java-core", version.ref = "dockerJavaCore" }
+docker-java-transport-httpclient5 = { module = "com.github.docker-java:docker-java-transport-httpclient5", version.ref = "dockerJavaCore" }
+grpc-okhttp = { group = "io.grpc", name = "grpc-okhttp", version.ref = "grpc" }
+grpc-protobuf = { group = "io.grpc", name = "grpc-protobuf-lite", version.ref = "grpc" }
+grpc-stub = { group = "io.grpc", name = "grpc-stub", version.ref = "grpc" }
+tomcat-annotations = { group = "org.apache.tomcat", name = "annotations-api", version.ref = "tomcatAnnotations" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+
+# build specific libraries
+kotest = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+
+# buildSrc specific libraries
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
+kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+protobuf-gradlePlugin = { group = "com.google.protobuf", name = "protobuf-gradle-plugin", version.ref = "protobufGradlePlugin" }
+protobuf-protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protobuf" }
+detekt-gradlePlugin = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
+detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
+grpc-protoc-java-gen = { group = "io.grpc", name = "protoc-gen-grpc-java", version.ref = "grpc" }
+
+[plugins]
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+pluginPublishing = { id = "com.gradle.plugin-publish", version = "1.2.1" }

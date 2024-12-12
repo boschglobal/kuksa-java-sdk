@@ -1,0 +1,36 @@
+name: Validate Pull Request
+
+on:
+  pull_request
+
+jobs:
+  build-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Project
+        uses: ./.github/actions/setup-project
+
+      - name: Run 'assembleDebug' with Gradle Wrapper
+        run: ./gradlew assembleDebug
+
+      - name: Run 'lint' with Gradle Wrapper
+        run: ./gradlew ktlintCheck detekt
+
+      - name: Upload Detekt Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detekt-reports
+          path: ${{ github.workspace }}/build/reports/detekt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Execute Tests
+        uses: ./.github/actions/run-tests
+        with:
+          upload-test-reports: true
+          upload-code-coverage-reports: true
+          databroker-version: "latest"

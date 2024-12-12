@@ -1,0 +1,48 @@
+name: Run Tests
+description: Runs Unit and Integration Test. Tests will be executed on a Databroker instance.
+
+inputs:
+  upload-test-reports:
+    description: "Uploads the resulting test reports if enabled"
+    default: 'false'
+  upload-code-coverage-reports:
+    description: "Executes Code Coverage Generation and uploads the resulting reports if enabled"
+    default: 'false'
+  databroker-version:
+    description: "Databroker Version"
+    default: 'master'
+  kotest-tag:
+    description: >
+      The Kotest Tag to use when executing the tests. Check Tag.kt for valid options. Different Tags might require the
+      Databroker to be started in a different mode.
+    default: ''
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run 'test' with Gradle Wrapper
+      run: ./gradlew test -Ddatabroker.tag="${{ inputs.databroker-version }}" -Dkotest.tags="${{ inputs.kotest-tag}}"
+      shell: bash
+
+    - name: Upload Test Reports
+      if: ${{ inputs.upload-test-reports == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-reports
+        path: ${{ github.workspace }}/**/reports/tests/*/
+        if-no-files-found: error
+        retention-days: 14
+
+    - name: Create Code Coverage Reports
+      if: ${{ inputs.upload-code-coverage-reports == 'true' }}
+      run: ./gradlew jacocoRootReport
+      shell: bash
+
+    - name: Upload Code Coverage Report
+      if: ${{ inputs.upload-code-coverage-reports == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: code-coverage
+        path: ${{ github.workspace }}/build/reports/jacoco/jacocoRootReport/html/*
+        if-no-files-found: error
+        retention-days: 14
