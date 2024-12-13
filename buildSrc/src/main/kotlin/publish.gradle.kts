@@ -59,7 +59,7 @@ afterEvaluate {
                 pom {
                     name = "${project.group}:${project.name}"
                     description = extension.description.get()
-                    url = "https://github.com/eclipse-kuksa/kuksa-android-sdk"
+                    url = "https://github.com/eclipse-kuksa/kuksa-java-sdk"
                     licenses {
                         license {
                             name.set("The Apache Software License, Version 2.0")
@@ -87,9 +87,9 @@ afterEvaluate {
                         }
                     }
                     scm {
-                        connection.set("scm:git:github.com/eclipse-kuksa/kuksa-android-sdk.git")
-                        developerConnection.set("scm:git:ssh://github.com/eclipse-kuksa/kuksa-android-sdk.git")
-                        url.set("https://github.com/eclipse-kuksa/kuksa-android-sdk/tree/main")
+                        connection.set("scm:git:github.com/eclipse-kuksa/kuksa-java-sdk.git")
+                        developerConnection.set("scm:git:ssh://github.com/eclipse-kuksa/kuksa-java-sdk.git")
+                        url.set("https://github.com/eclipse-kuksa/kuksa-java-sdk/tree/main")
                     }
                 }
             }

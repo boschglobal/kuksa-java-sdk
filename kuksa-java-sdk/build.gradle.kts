@@ -22,6 +22,7 @@
 import com.google.protobuf.gradle.id
 import org.eclipse.kuksa.version.SemanticVersion
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_PATH_KEY
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -64,7 +65,7 @@ tasks.withType<KotlinCompile> {
 publish {
     mavenPublicationName = "release"
     componentName = "java"
-    description = "Android Connectivity Library for the KUKSA Databroker"
+    description = "Java Connectivity Library for the KUKSA Databroker"
 }
 
 tasks.register("javadocJar", Jar::class) {
@@ -73,6 +74,10 @@ tasks.register("javadocJar", Jar::class) {
     val buildDir = layout.buildDirectory.get()
     from("$buildDir/dokka/html")
     archiveClassifier.set("javadoc")
+}
+
+tasks.withType<DokkaTask>().configureEach {
+    notCompatibleWithConfigurationCache("https://github.com/Kotlin/dokka/issues/2231")
 }
 
 java {

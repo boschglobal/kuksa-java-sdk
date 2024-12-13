@@ -17,8 +17,6 @@
  *
  */
 
-import com.android.build.api.dsl.LibraryExtension
-import com.android.build.gradle.internal.dsl.BaseAppModuleExtension
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_NAME
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_PATH_KEY
 import java.nio.file.FileVisitResult
@@ -112,34 +110,6 @@ subprojects {
     apply {
         plugin("jacoco")
     }
-
-    if (plugins.hasPlugin("com.android.library")) {
-        configure<LibraryExtension> {
-            @Suppress("UnstableApiUsage")
-            testOptions {
-                buildTypes {
-                    named("debug") {
-                        enableUnitTestCoverage = true
-                        enableAndroidTestCoverage = true
-                    }
-                }
-            }
-        }
-    }
-
-    if (plugins.hasPlugin("com.android.application")) {
-        configure<BaseAppModuleExtension> {
-            @Suppress("UnstableApiUsage")
-            testOptions {
-                buildTypes {
-                    named("debug") {
-                        enableUnitTestCoverage = true
-                        enableAndroidTestCoverage = true
-                    }
-                }
-            }
-        }
-    }
 }
 
 tasks.create("jacocoRootReport", JacocoReport::class.java) {
@@ -155,7 +125,6 @@ tasks.create("jacocoRootReport", JacocoReport::class.java) {
         "**/buildSrc/**",
         "**/app/**",
         "**/samples/**",
-        "**/vssprocessor/plugin/**", // code coverage not supported for Gradle Plugins / Gradle TestKit tests
         "**/build/**/org/eclipse/kuksa/vss/**", // generated code
         "**/test*/**/*.*",
     )
