@@ -22,11 +22,13 @@
 import com.google.protobuf.gradle.id
 import org.eclipse.kuksa.version.SemanticVersion
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_PATH_KEY
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    kotlin("jvm")
     id("com.google.protobuf")
+    alias(libs.plugins.dokka)
     publish
 }
 
@@ -35,45 +37,50 @@ val semanticVersion = SemanticVersion(versionPath)
 version = semanticVersion.versionName
 group = "org.eclipse.kuksa"
 
-android {
-    namespace = "org.eclipse.kuksa"
-    compileSdk = 33
-
-    defaultConfig {
-        minSdk = 27
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        consumerProguardFiles("consumer-rules.pro")
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+
+    kotlin {
+        compilerOptions {
+            // https://youtrack.jetbrains.com/issue/KT-48678/Coroutine-debugger-disable-was-optimised-out-compiler-feature
+            // We don't want local variables to be optimized out while debugging into tests
+            freeCompilerArgs.add("-Xdebug")
+        }
     }
+}
+
+tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = libs.versions.jvmTarget.get()
+        freeCompilerArgs = listOf("-Xdebug")
     }
-    testOptions {
-        unitTests {
-            isReturnDefaultValues = true
-            all {
-                it.useJUnitPlatform()
-            }
-        }
-        kotlin {
-            compilerOptions {
-                // https://youtrack.jetbrains.com/issue/KT-48678/Coroutine-debugger-disable-was-optimised-out-compiler-feature
-                // We don't want local variables to be optimized out while debugging into tests
-                freeCompilerArgs.add("-Xdebug")
-            }
-        }
-    }
-    publishing {
-        singleVariant("release") {
-            withJavadocJar()
-            withSourcesJar()
-        }
-    }
+}
+
+publish {
+    mavenPublicationName = "release"
+    componentName = "java"
+    description = "Android Connectivity Library for the KUKSA Databroker"
+}
+
+tasks.register("javadocJar", Jar::class) {
+    dependsOn("dokkaHtml")
+
+    val buildDir = layout.buildDirectory.get()
+    from("$buildDir/dokka/html")
+    archiveClassifier.set("javadoc")
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+
+    withJavadocJar() // needs to be called after tasks.register("javadocJar")
+    withSourcesJar()
 }
 
 dependencies {
@@ -89,7 +96,7 @@ dependencies {
     implementation(libs.grpc.okhttp)
     implementation(libs.grpc.stub)
     implementation(libs.tomcat.annotations)
-    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotest)
@@ -97,12 +104,6 @@ dependencies {
 
     testImplementation(libs.docker.java.core)
     testImplementation(libs.docker.java.transport.httpclient5)
-}
-
-publish {
-    mavenPublicationName = "release"
-    componentName = "release"
-    description = "Android Connectivity Library for the KUKSA Databroker"
 }
 
 protobuf {
@@ -116,7 +117,7 @@ protobuf {
         generateProtoTasks {
             all().forEach {
                 it.builtins {
-                    create("java") {
+                    named("java") {
                         option("lite")
                     }
                 }

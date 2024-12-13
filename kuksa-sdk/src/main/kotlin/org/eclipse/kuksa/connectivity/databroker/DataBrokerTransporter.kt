@@ -18,7 +18,6 @@
 
 package org.eclipse.kuksa.connectivity.databroker
 
-import android.util.Log
 import io.grpc.ConnectivityState
 import io.grpc.Context
 import io.grpc.ManagedChannel
@@ -37,6 +36,7 @@ import org.eclipse.kuksa.proto.v1.KuksaValV1.SubscribeResponse
 import org.eclipse.kuksa.proto.v1.Types
 import org.eclipse.kuksa.proto.v1.Types.Field
 import org.eclipse.kuksa.proto.v1.VALGrpc
+import java.util.logging.Logger
 
 /**
  * Encapsulates the Protobuf-specific interactions with the DataBroker send over gRPC. Provides fetch, update and
@@ -50,6 +50,8 @@ internal class DataBrokerTransporter(
     private val managedChannel: ManagedChannel,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
+
+    private val logger = Logger.getLogger(TAG)
 
     init {
         val state = managedChannel.getState(false)
@@ -176,7 +178,7 @@ internal class DataBrokerTransporter(
             }
 
             override fun onCompleted() {
-                Log.d(TAG, "onCompleted() called")
+                logger.finer("onCompleted() called")
             }
         }
 

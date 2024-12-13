@@ -20,13 +20,13 @@
 package org.eclipse.kuksa.connectivity.databroker.docker
 
 import com.github.dockerjava.api.command.CreateContainerResponse
-import org.eclipse.kuksa.connectivity.databroker.DATABROKER_CONTAINER_NAME
-import org.eclipse.kuksa.connectivity.databroker.DATABROKER_PORT
+
+const val DEFAULT_PORT_INSECURE = 55570
 
 // no tls, no authentication
 class InsecureDataBrokerDockerContainer(
-    containerName: String = DATABROKER_CONTAINER_NAME,
-    port: Int = DATABROKER_PORT,
+    containerName: String = "databroker_insecure_unit_test",
+    port: Int = DEFAULT_PORT_INSECURE,
 ) : DataBrokerDockerContainer(containerName, port) {
 
     @Suppress("ArgumentListWrapping", "ktlint:standard:argument-list-wrapping") // better key-value pair readability

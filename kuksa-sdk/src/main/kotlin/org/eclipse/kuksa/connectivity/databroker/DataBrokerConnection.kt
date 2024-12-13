@@ -18,7 +18,6 @@
 
 package org.eclipse.kuksa.connectivity.databroker
 
-import android.util.Log
 import io.grpc.ConnectivityState
 import io.grpc.ManagedChannel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -48,6 +47,7 @@ import org.eclipse.kuksa.vsscore.model.VssNode
 import org.eclipse.kuksa.vsscore.model.VssSignal
 import org.eclipse.kuksa.vsscore.model.heritage
 import org.eclipse.kuksa.vsscore.model.vssSignals
+import java.util.logging.Logger
 import kotlin.properties.Delegates
 
 /**
@@ -63,6 +63,8 @@ class DataBrokerConnection internal constructor(
     ),
     private val dataBrokerSubscriber: DataBrokerSubscriber = DataBrokerSubscriber(dataBrokerTransporter),
 ) {
+    private val logger = Logger.getLogger(TAG)
+
     /**
      * Used to register and unregister multiple [DisconnectListener].
      */
@@ -79,7 +81,7 @@ class DataBrokerConnection internal constructor(
         val state = managedChannel.getState(false)
         managedChannel.notifyWhenStateChanged(state) {
             val newState = managedChannel.getState(false)
-            Log.d(TAG, "DataBrokerConnection state changed: $newState")
+            logger.finer("DataBrokerConnection state changed: $newState")
             if (newState != ConnectivityState.SHUTDOWN) {
                 managedChannel.shutdownNow()
             }
@@ -161,7 +163,7 @@ class DataBrokerConnection internal constructor(
      * @throws DataBrokerException in case the connection to the DataBroker is no longer active
      */
     suspend fun fetch(request: FetchRequest): GetResponse {
-        Log.d(TAG, "Fetching via request: $request")
+        logger.finer("Fetching via request: $request")
         return dataBrokerTransporter.fetch(request.vssPath, request.fields.toSet())
     }
 
@@ -184,7 +186,7 @@ class DataBrokerConnection internal constructor(
                 val entries = response.entriesList
 
                 if (entries.isEmpty()) {
-                    Log.w(TAG, "No entries found for fetched VssNode!")
+                    logger.warning("No entries found for fetched VssNode!")
                     return@withContext vssNode
                 }
 
@@ -210,7 +212,7 @@ class DataBrokerConnection internal constructor(
      * @throws DataBrokerException in case the connection to the DataBroker is no longer active
      */
     suspend fun update(request: UpdateRequest): SetResponse {
-        Log.d(TAG, "Update with request: $request")
+        logger.finer("Update with request: $request")
         return dataBrokerTransporter.update(request.vssPath, request.dataPoint, request.fields.toSet())
     }
 
@@ -243,7 +245,7 @@ class DataBrokerConnection internal constructor(
      * Disconnect from the DataBroker.
      */
     fun disconnect() {
-        Log.d(TAG, "disconnect() called")
+        logger.finer("disconnect() called")
         managedChannel.shutdownNow()
     }
 }

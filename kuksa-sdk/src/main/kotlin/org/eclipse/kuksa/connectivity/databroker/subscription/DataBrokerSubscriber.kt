@@ -18,7 +18,6 @@
 
 package org.eclipse.kuksa.connectivity.databroker.subscription
 
-import android.util.Log
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerTransporter
 import org.eclipse.kuksa.connectivity.databroker.listener.VssNodeListener
@@ -28,6 +27,7 @@ import org.eclipse.kuksa.proto.v1.Types
 import org.eclipse.kuksa.proto.v1.Types.Field
 import org.eclipse.kuksa.vsscore.model.VssNode
 import org.eclipse.kuksa.vsscore.model.VssSignal
+import java.util.logging.Logger
 
 /**
  * Creates [DataBrokerSubscription]s to the DataBroker to get notified about changes on the underlying vssPaths and
@@ -37,6 +37,8 @@ import org.eclipse.kuksa.vsscore.model.VssSignal
  * canceled and removed from the active [DataBrokerSubscription]s.
  */
 internal class DataBrokerSubscriber(private val dataBrokerTransporter: DataBrokerTransporter) {
+    private val logger = Logger.getLogger(TAG)
+
     private val subscriptions =
         mutableMapOf<String, DataBrokerSubscription>() // String(Subscription#identifier) -> Subscription
 
@@ -51,7 +53,7 @@ internal class DataBrokerSubscriber(private val dataBrokerTransporter: DataBroke
         if (subscription == null) {
             subscription = dataBrokerTransporter.subscribe(vssPath, field)
             subscriptions[identifier] = subscription
-            Log.v(TAG, "Created $subscription")
+            logger.finest("Created $subscription")
         }
 
         subscription.listeners.register(listener)
@@ -69,7 +71,7 @@ internal class DataBrokerSubscriber(private val dataBrokerTransporter: DataBroke
         subscription.listeners.unregister(listener)
 
         if (subscription.listeners.isEmpty()) {
-            Log.v(TAG, "Removing $subscription: no more listeners")
+            logger.finest("Removing $subscription: no more listeners")
             subscription.cancel()
             subscriptions.remove(identifier)
         }

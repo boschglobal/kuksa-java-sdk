@@ -22,18 +22,30 @@
 import org.eclipse.kuksa.version.SemanticVersion
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_PATH_KEY
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
 plugins {
     kotlin("jvm")
-    publish
     alias(libs.plugins.dokka)
+    publish
 }
 
 val versionPath = rootProject.ext[VERSION_FILE_DEFAULT_PATH_KEY] as String
 val semanticVersion = SemanticVersion(versionPath)
 version = semanticVersion.versionName
 group = "org.eclipse.kuksa"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
+    }
+}
 
 dependencies {
     implementation(kotlin("stdlib"))

@@ -18,7 +18,6 @@
 
 package org.eclipse.kuksa.connectivity.databroker
 
-import android.util.Log
 import io.grpc.ConnectivityState
 import io.grpc.ManagedChannel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -28,6 +27,7 @@ import kotlinx.coroutines.withContext
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.model.TimeoutConfig
+import java.util.logging.Logger
 
 /**
  * The DataBrokerConnector is used to establish a successful connection to the DataBroker. The communication takes
@@ -38,6 +38,8 @@ class DataBrokerConnector @JvmOverloads constructor(
     private val jsonWebToken: JsonWebToken? = null,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
+    private val logger = Logger.getLogger(TAG)
+
     /**
      * Configuration to be used during connection.
      */
@@ -55,7 +57,7 @@ class DataBrokerConnector @JvmOverloads constructor(
             throw DataBrokerException("Connector is already trying to establish a connection")
         }
 
-        Log.d(TAG, "connect() called")
+        logger.finer("connect() called")
 
         return withContext(defaultDispatcher) {
             val startTime = System.currentTimeMillis()

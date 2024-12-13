@@ -25,6 +25,8 @@ import io.grpc.ManagedChannelBuilder
 import io.grpc.TlsChannelCredentials
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.authentication.JwtType
+import org.eclipse.kuksa.connectivity.databroker.docker.DEFAULT_PORT_INSECURE
+import org.eclipse.kuksa.connectivity.databroker.docker.DEFAULT_PORT_SECURE
 import org.eclipse.kuksa.model.TimeoutConfig
 import org.eclipse.kuksa.test.TestResourceFile
 import java.io.IOException
@@ -34,7 +36,7 @@ class DataBrokerConnectorProvider {
     lateinit var managedChannel: ManagedChannel
     fun createInsecure(
         host: String = DATABROKER_HOST,
-        port: Int = DATABROKER_PORT,
+        port: Int = DEFAULT_PORT_INSECURE,
         jwtFileStream: InputStream? = null,
     ): DataBrokerConnector {
         managedChannel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build()
@@ -54,7 +56,7 @@ class DataBrokerConnectorProvider {
 
     fun createSecure(
         host: String = DATABROKER_HOST,
-        port: Int = DATABROKER_PORT,
+        port: Int = DEFAULT_PORT_SECURE,
         overrideAuthority: String = "",
         rootCertFileStream: InputStream = TestResourceFile("tls/CA.pem").inputStream(),
         jwtFileStream: InputStream? = JwtType.READ_WRITE_ALL.asInputStream(),

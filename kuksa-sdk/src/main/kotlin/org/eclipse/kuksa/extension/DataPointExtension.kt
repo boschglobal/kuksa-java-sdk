@@ -19,13 +19,15 @@
 
 package org.eclipse.kuksa.extension
 
-import android.util.Log
 import org.eclipse.kuksa.proto.v1.Types
 import org.eclipse.kuksa.proto.v1.Types.Datapoint
 import org.eclipse.kuksa.proto.v1.Types.Datapoint.ValueCase
 import org.eclipse.kuksa.vsscore.model.VssSignal
+import java.util.logging.Logger
 
 private const val CSV_DELIMITER = ","
+
+private val logger = Logger.getLogger("DataPointExtension")
 
 /**
  * Returns the converted VSS value types -> Protobuf data types.
@@ -143,7 +145,7 @@ fun ValueCase.createDatapoint(value: String): Datapoint {
                 datapointBuilder.boolArray = createBoolArray(value)
         }
     } catch (e: NumberFormatException) {
-        Log.w(TAG, "Could not convert value: $value to ValueCase: $this", e)
+        logger.warning("Could not convert value: $value to ValueCase: $this")
         datapointBuilder.string = value // Fallback to string
     }
 
