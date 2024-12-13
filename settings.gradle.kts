@@ -46,4 +46,4 @@ rootProject.name = "kuksa-java-sdk"
 
 include(":kuksa-sdk")
 include(":vss-core")
-include(":test")
+include(":test-core")
