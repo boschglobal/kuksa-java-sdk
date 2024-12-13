@@ -13,10 +13,10 @@ jobs:
       - name: Setup Project
         uses: ./.github/actions/setup-project
 
-      - name: Run 'assembleDebug' with Gradle Wrapper
-        run: ./gradlew assembleDebug
+      - name: Build SDK
+        run: ./gradlew assemble
 
-      - name: Run 'lint' with Gradle Wrapper
+      - name: Run Linting
         run: ./gradlew ktlintCheck detekt
 
       - name: Upload Detekt Reports
