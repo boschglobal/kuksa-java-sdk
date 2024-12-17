@@ -17,7 +17,7 @@
     {"type": "style", "hidden": true}
   ],
   "preMajor": true,
-  "commitUrlFormat": "https://github.com/eclipse-kuksa/kuksa-android-sdk/commit/{{hash}}",
-  "compareUrlFormat": "https://github.com/eclipse-kuksa/kuksa-android-sdk/compare/release/{{previousTag}}...{{currentTag}}",
-  "issueUrlFormat": "https://github.com/eclipse-kuksa/kuksa-android-sdk/issues/{{id}}"
+  "commitUrlFormat": "https://github.com/eclipse-kuksa/kuksa-java-sdk/commit/{{hash}}",
+  "compareUrlFormat": "https://github.com/eclipse-kuksa/kuksa-java-sdk/compare/release/{{previousTag}}...{{currentTag}}",
+  "issueUrlFormat": "https://github.com/eclipse-kuksa/kuksa-java-sdk/issues/{{id}}"
 }
