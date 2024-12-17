@@ -1,19 +1,17 @@
 ## Introduction
 
-Get instantly bootstrapped into the world of the KUKSA SDK with the following code snippets!
+Get instantly bootstrapped into the world of the KUKSA Java SDK with the following code snippets!
 
 ## Integration
 
 *app/build.gradle.kts*
 ```
-implementation("org.eclipse.kuksa:kuksa-sdk:<VERSION>")
+implementation("org.eclipse.kuksa:kuksa-java-sdk:<VERSION>")
 ```
 
 ## Connecting to the Databroker
 
-You can use the following snippet for a simple (unsecure) connection to the Databroker. This highly depends on your 
-setup so see the [samples package](https://github.com/eclipse-kuksa/kuksa-android-sdk/blob/main/samples/src/main/kotlin/com/example/sample/KotlinActivity.kt)
-for a detailed implementation or how to connect in a secure way with a certificate.
+You can use the following snippet for a simple (unsecure) connection to the Databroker. 
 
 *Kotlin*
 ```kotlin

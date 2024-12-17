@@ -79,7 +79,7 @@ Used for detecting static code style issues.
 
 ### Fail-Early-Builds
 
-We have multiple Fail-Early-Builds which run different versions of the KUKSA Android SDK against the KUKSA Databroker. 
+We have multiple Fail-Early-Builds which run different versions of the KUKSA Java SDK against the KUKSA Databroker. 
 Our goal is to have an early indication which allows us more easily to find breaking or behavioral changes when running our SDK on a specific version of the Databroker. 
 
 When one of these builds fail a short validity check should be done:
@@ -103,7 +103,7 @@ If this build fails it should be considered as a warning
 
 **SDK:main -> Databroker:master**
 
-[![SDK:main <-> Databroker:master](https://github.com/eclipse-kuksa/kuksa-android-sdk/actions/workflows/daily_integration_main-master.yaml/badge.svg)](https://github.com/eclipse-kuksa/kuksa-android-sdk/actions/workflows/daily_integration_main-master.yaml?query=branch%3Amain)
+[![SDK:main <-> Databroker:master](https://github.com/eclipse-kuksa/kuksa-java-sdk/actions/workflows/daily_integration_main-master.yaml/badge.svg)](https://github.com/eclipse-kuksa/kuksa-java-sdk/actions/workflows/daily_integration_main-master.yaml?query=branch%3Amain)
 
 This means both the SDK and Databroker are running in a kind of "bleeding edge" state in their currently developed version.
 
