@@ -1,0 +1,22 @@
+name: Dash License Check
+
+on:
+  pull_request
+
+jobs:
+  check-dash:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Project
+        uses: ./.github/actions/setup-project
+
+      - name: Create Dash Dependency Report
+        run: ./gradlew mergeDashFiles
+
+      - name: Dash license check
+        uses: eclipse-kuksa/kuksa-actions/check-dash@4
+        with:
+          dashinput: ${{github.workspace}}/build/oss/all/all-dependencies.txt

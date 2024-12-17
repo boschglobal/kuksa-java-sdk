@@ -1,0 +1,126 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+package grpc {
+
+    ManagedChannelBuilder --> ManagedChannel
+
+    class ManagedChannel
+    class ManagedChannelBuilder
+
+}
+
+package kuksa {
+
+    package proto {
+        class Field
+        class Datapoint
+        class DataEntry
+        class SetResponse
+        class GetResponse
+        class DataEntryError
+        class EntryUpdate
+    }
+
+    DataBrokerConnector -down-> DataBrokerException
+    DataBrokerConnector -down-> DataBrokerConnection
+    DataBrokerConnection -down-> DataBrokerTransporter
+    DataBrokerConnection -down-> DataBrokerSubscriber
+    DataBrokerConnection -down-> VssPathListener
+    DataBrokerConnection -left-> DataBrokerException
+    DataBrokerConnection -up-> MultiListener
+    DataBrokerSubscriber -up-> DataBrokerTransporter
+    MultiListener -right-> DisconnectListener
+    TimeoutConfig -left-* DataBrokerConnector
+    JsonWebToken -right-* DataBrokerConnector
+
+    class DataBrokerConnector {
+        + connect(): DataBrokerConnection
+    }
+
+    class TimeoutConfig {
+        + timeout: Long
+        + timeUnit: TimeUnit
+    }
+
+    class DataBrokerTransporter {
+        + jsonWebToken: JsonWebToken
+
+        + fetch(vssPath: String, Collection<Field>): GetResponse
+        + update(vssPath: String, Collection<Field>, Types.Datapoint): SetResponse
+        + subscribe(vssPath: String, Field): Subscription
+    }
+
+    class DataBrokerSubscriber {
+        + subscribe(vssPath: String, Field, VssPathListener)
+        + subscribe<T : VssNode>(T, Field, VssNodeListener<T>)
+        + unsubscribe(vssPath: String, Field, VssPathListener)
+        + unsubscribe<T : VssNode>(T, Field, VssNodeListener<T>)
+    }
+
+    class DataBrokerConnection {
+        + disconnectListeners: MultiListener<DisconnectListener>
+        + jsonWebToken: JsonWebToken
+
+        + subscribe(SubscribeRequest, VssPathListener)
+        + subscribe<T : VssNode>(VssNodeSubscribeRequest, VssNodeListener<T>)
+        + unsubscribe(SubscribeRequest, VssPathListener)
+        + unsubscribe<T : VssNode>(VssNodeSubscribeRequest<T>, VssNodeListener<T>)
+        + fetch(FetchRequest): GetResponse
+        + fetch<T : VssNode>(VssNodeFetchRequest<T>)
+        + update(UpdateRequest): SetResponse
+        + update(VssNodeUpdateRequest): SetResponse
+        + disconnect()
+    }
+    
+    interface VssPathListener {
+        + onEntryChanged(List<EntryUpdate>)
+        + onError(Throwable)
+    }
+
+    package request {
+        interface DataBrokerRequest {
+            + vssPath: String
+            + fields: Array<out Field>
+        }
+
+        class UpdateRequest {
+            + dataPoint: Datapoint
+        }
+
+        class VssNodeDataBrokerRequest<T : VssNode> {
+            + vssNode: T
+        }
+
+        DataBrokerRequest <|-- FetchRequest
+        DataBrokerRequest <|-- SubscribeRequest
+        DataBrokerRequest <|-- UpdateRequest
+        DataBrokerRequest <|-- VssNodeDataBrokerRequest
+
+        VssNodeDataBrokerRequest <|-- VssNodeFetchRequest
+        VssNodeDataBrokerRequest <|-- VssNodeSubscribeRequest
+        VssNodeDataBrokerRequest <|-- VssNodeUpdateRequest
+    }
+
+    class DataBrokerException
+
+    abstract class MultiListener<T> {
+        + register(T)
+        + unregister(T)
+    }
+
+    interface DisconnectListener {
+        + onDisconnect()
+    }
+
+    class JsonWebToken {
+        + authScheme: String
+        + authParameters: String
+    }
+}
+
+DataBrokerConnector -up-> ManagedChannel
+DataBrokerConnection -right-> proto
+DataBrokerConnection -right-> request
+
+@enduml

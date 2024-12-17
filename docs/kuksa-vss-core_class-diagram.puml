@@ -1,0 +1,30 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+!startsub VssCore
+package VssCore {
+    VssNode <|- VssBranch
+    VssNode <|-- VssSignal
+
+    annotation VssModelGenerator
+
+    interface VssNode {
+        + children: Set<VssNode>
+        + parentClass: KClass<*>
+        + uuid: String
+        + vssPath: String
+        + description: String
+        + type: String
+        + comment: String
+    }
+
+    interface VssBranch
+
+    interface VssSignal<T : Any> {
+        + value: T
+    }
+}
+
+!endsub
+
+@enduml

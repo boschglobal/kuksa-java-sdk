@@ -1,0 +1,30 @@
+name: GitHub release
+
+concurrency: production
+
+on:
+  push:
+    tags:
+      - 'release/v*'
+
+permissions:
+  contents: write
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/setup-project
+
+      - name: Set Release Version
+        run: ./gradlew setReleaseVersion # Do not chain this command because it writes into a file which needs to be re-read inside the next gradle command
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        with:
+          prerelease: true
+          body_path: CHANGELOG.md
+          files: |
+            CHANGELOG.md
