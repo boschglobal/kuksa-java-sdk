@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Gitter](https://img.shields.io/gitter/room/kuksa-val/community)](https://gitter.im/kuksa-val/community)
 
-[![SDK:main <-> Databroker:master](https://github.com/eclipse-kuksa/kuksa-java-sdk/actions/workflows/daily_integration_main-master.yaml/badge.svg)](https://github.com/eclipse-kuksa/kuksa-java-sdk/actions/workflows/daily_integration_main-master.yaml?query=branch%3Amain)
+[![SDK:main <-> Databroker:main](https://github.com/eclipse-kuksa/kuksa-java-sdk/actions/workflows/daily_integration_main.yaml/badge.svg)](https://github.com/eclipse-kuksa/kuksa-java-sdk/actions/workflows/daily_integration_main.yaml?query=branch%3Amain)
 
 This is a Java SDK for the [KUKSA Vehicle Abstraction Layer](https://github.com/eclipse-kuksa/kuksa-databroker).
 
