@@ -17,7 +17,7 @@
  *
  */
 
-package org.eclipse.kuksa.connectivity.databroker
+package org.eclipse.kuksa.connectivity.databroker.v1
 
 import io.grpc.ConnectivityState
 import io.grpc.ManagedChannel
@@ -28,17 +28,17 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.eclipse.kuksa.connectivity.databroker.DisconnectListener
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
-import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection
-import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerTransporter
+import org.eclipse.kuksa.connectivity.databroker.v1.extensions.updateRandomFloatValue
+import org.eclipse.kuksa.connectivity.databroker.v1.provider.DataBrokerConnectorProvider
 import org.eclipse.kuksa.connectivity.databroker.v1.request.FetchRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.SubscribeRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.UpdateRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.VssNodeFetchRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.VssNodeSubscribeRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.VssNodeUpdateRequest
-import org.eclipse.kuksa.extensions.updateRandomFloatValue
 import org.eclipse.kuksa.mocking.FriendlyVssNodeListener
 import org.eclipse.kuksa.mocking.FriendlyVssPathListener
 import org.eclipse.kuksa.proto.v1.Types

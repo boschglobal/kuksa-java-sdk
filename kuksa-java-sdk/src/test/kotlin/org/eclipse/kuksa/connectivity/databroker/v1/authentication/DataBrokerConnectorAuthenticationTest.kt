@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  *
  */
 
-package org.eclipse.kuksa.connectivity.authentication
+package org.eclipse.kuksa.connectivity.databroker.v1.authentication
 
 import io.grpc.StatusRuntimeException
 import io.kotest.assertions.nondeterministic.eventually
@@ -26,14 +26,15 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.instanceOf
-import org.eclipse.kuksa.connectivity.databroker.DataBrokerConnectorProvider
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.SecureDataBrokerDockerContainer
+import org.eclipse.kuksa.connectivity.databroker.v1.provider.DataBrokerConnectorProvider
 import org.eclipse.kuksa.connectivity.databroker.v1.request.FetchRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.SubscribeRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.UpdateRequest
 import org.eclipse.kuksa.mocking.FriendlyVssPathListener
+import org.eclipse.kuksa.mocking.JwtType
 import org.eclipse.kuksa.proto.v1.Types
 import org.eclipse.kuksa.test.kotest.Authentication
 import org.eclipse.kuksa.test.kotest.Integration

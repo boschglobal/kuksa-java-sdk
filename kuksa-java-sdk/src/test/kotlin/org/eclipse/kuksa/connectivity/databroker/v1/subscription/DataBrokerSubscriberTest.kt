@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 
-package org.eclipse.kuksa.connectivity.databroker.subscription
+package org.eclipse.kuksa.connectivity.databroker.v1.subscription
 
 import io.kotest.assertions.nondeterministic.continually
 import io.kotest.assertions.nondeterministic.eventually
@@ -27,16 +28,14 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.eclipse.kuksa.connectivity.databroker.DataBrokerConnectorProvider
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerTransporter
+import org.eclipse.kuksa.connectivity.databroker.v1.extensions.toggleBoolean
+import org.eclipse.kuksa.connectivity.databroker.v1.extensions.updateRandomFloatValue
+import org.eclipse.kuksa.connectivity.databroker.v1.extensions.updateRandomUint32Value
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
-import org.eclipse.kuksa.connectivity.databroker.v1.subscription.DataBrokerSubscriber
-import org.eclipse.kuksa.connectivity.databroker.v1.subscription.DataBrokerSubscription
-import org.eclipse.kuksa.extensions.toggleBoolean
-import org.eclipse.kuksa.extensions.updateRandomFloatValue
-import org.eclipse.kuksa.extensions.updateRandomUint32Value
+import org.eclipse.kuksa.connectivity.databroker.v1.provider.DataBrokerConnectorProvider
 import org.eclipse.kuksa.mocking.FriendlyVssNodeListener
 import org.eclipse.kuksa.mocking.FriendlyVssPathListener
 import org.eclipse.kuksa.pattern.listener.MultiListener
