@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
  * limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 
-package org.eclipse.kuksa.connectivity.authentication
+package org.eclipse.kuksa.connectivity.databroker.v1.extension
 
 import com.google.common.net.HttpHeaders
 import io.grpc.ClientInterceptor
 import io.grpc.Metadata
 import io.grpc.stub.MetadataUtils
+import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.proto.v1.VALGrpc.VALBlockingStub
 import org.eclipse.kuksa.proto.v1.VALGrpc.VALStub
 

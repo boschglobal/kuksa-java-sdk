@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 
-package org.eclipse.kuksa.connectivity.databroker
+package org.eclipse.kuksa.connectivity.databroker.v1
 
 import io.grpc.ConnectivityState
 import io.grpc.Context
@@ -27,8 +28,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
-import org.eclipse.kuksa.connectivity.authentication.withAuthenticationInterceptor
-import org.eclipse.kuksa.connectivity.databroker.subscription.DataBrokerSubscription
+import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
+import org.eclipse.kuksa.connectivity.databroker.v1.extension.withAuthenticationInterceptor
+import org.eclipse.kuksa.connectivity.databroker.v1.subscription.DataBrokerSubscription
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.extension.applyDatapoint
 import org.eclipse.kuksa.proto.v1.KuksaValV1

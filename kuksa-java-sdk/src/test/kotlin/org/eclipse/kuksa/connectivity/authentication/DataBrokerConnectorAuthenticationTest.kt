@@ -30,9 +30,9 @@ import org.eclipse.kuksa.connectivity.databroker.DataBrokerConnectorProvider
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.SecureDataBrokerDockerContainer
-import org.eclipse.kuksa.connectivity.databroker.request.FetchRequest
-import org.eclipse.kuksa.connectivity.databroker.request.SubscribeRequest
-import org.eclipse.kuksa.connectivity.databroker.request.UpdateRequest
+import org.eclipse.kuksa.connectivity.databroker.v1.request.FetchRequest
+import org.eclipse.kuksa.connectivity.databroker.v1.request.SubscribeRequest
+import org.eclipse.kuksa.connectivity.databroker.v1.request.UpdateRequest
 import org.eclipse.kuksa.mocking.FriendlyVssPathListener
 import org.eclipse.kuksa.proto.v1.Types
 import org.eclipse.kuksa.test.kotest.Authentication

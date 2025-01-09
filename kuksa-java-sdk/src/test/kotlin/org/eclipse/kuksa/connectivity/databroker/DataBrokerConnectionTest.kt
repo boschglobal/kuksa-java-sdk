@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 
 package org.eclipse.kuksa.connectivity.databroker
@@ -29,13 +30,14 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
-import org.eclipse.kuksa.connectivity.databroker.listener.DisconnectListener
-import org.eclipse.kuksa.connectivity.databroker.request.FetchRequest
-import org.eclipse.kuksa.connectivity.databroker.request.SubscribeRequest
-import org.eclipse.kuksa.connectivity.databroker.request.UpdateRequest
-import org.eclipse.kuksa.connectivity.databroker.request.VssNodeFetchRequest
-import org.eclipse.kuksa.connectivity.databroker.request.VssNodeSubscribeRequest
-import org.eclipse.kuksa.connectivity.databroker.request.VssNodeUpdateRequest
+import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection
+import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerTransporter
+import org.eclipse.kuksa.connectivity.databroker.v1.request.FetchRequest
+import org.eclipse.kuksa.connectivity.databroker.v1.request.SubscribeRequest
+import org.eclipse.kuksa.connectivity.databroker.v1.request.UpdateRequest
+import org.eclipse.kuksa.connectivity.databroker.v1.request.VssNodeFetchRequest
+import org.eclipse.kuksa.connectivity.databroker.v1.request.VssNodeSubscribeRequest
+import org.eclipse.kuksa.connectivity.databroker.v1.request.VssNodeUpdateRequest
 import org.eclipse.kuksa.extensions.updateRandomFloatValue
 import org.eclipse.kuksa.mocking.FriendlyVssNodeListener
 import org.eclipse.kuksa.mocking.FriendlyVssPathListener

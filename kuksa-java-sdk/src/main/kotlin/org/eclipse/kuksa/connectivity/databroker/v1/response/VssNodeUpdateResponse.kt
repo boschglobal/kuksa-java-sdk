@@ -16,19 +16,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package org.eclipse.kuksa.connectivity.databroker.request
+package org.eclipse.kuksa.connectivity.databroker.v1.response
 
-import org.eclipse.kuksa.proto.v1.Types
-import org.eclipse.kuksa.vsscore.model.VssNode
+import org.eclipse.kuksa.proto.v1.KuksaValV1.SetResponse
 
 /**
- * Used for fetch requests with a generated [VssNode] model and
- * [org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection.fetch].
+ *  Represents a collection of [SetResponse]s.
  */
-class VssNodeFetchRequest<T : VssNode> @JvmOverloads constructor(
-    override val vssNode: T,
-    override vararg val fields: Types.Field = arrayOf(Types.Field.FIELD_VALUE),
-) : VssNodeDataBrokerRequest<T> {
-    override val vssPath: String
-        get() = vssNode.vssPath
+// Necessary to ensure Java compatibility with generics + suspend functions.
+class VssNodeUpdateResponse internal constructor(
+    responses: Collection<SetResponse>,
+) : ArrayList<SetResponse>(responses) {
+    internal constructor(vararg setResponse: SetResponse) : this(setResponse.toList())
 }

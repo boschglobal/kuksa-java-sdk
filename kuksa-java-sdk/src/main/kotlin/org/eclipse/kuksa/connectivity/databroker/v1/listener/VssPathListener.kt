@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package org.eclipse.kuksa.connectivity.databroker.listener
+package org.eclipse.kuksa.connectivity.databroker.v1.listener
 
 import org.eclipse.kuksa.pattern.listener.Listener
 import org.eclipse.kuksa.proto.v1.KuksaValV1

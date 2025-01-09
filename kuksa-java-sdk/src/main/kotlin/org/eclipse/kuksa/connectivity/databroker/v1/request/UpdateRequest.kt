@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,19 @@
  * limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 
-package org.eclipse.kuksa.connectivity.databroker.response
+package org.eclipse.kuksa.connectivity.databroker.v1.request
 
-import org.eclipse.kuksa.proto.v1.KuksaValV1.SetResponse
+import org.eclipse.kuksa.proto.v1.Types
+import org.eclipse.kuksa.proto.v1.Types.Datapoint
 
 /**
- *  Represents a collection of [SetResponse]s.
+ * Used for update requests with [org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection.update].
  */
-// Necessary to ensure Java compatibility with generics + suspend functions.
-class VssNodeUpdateResponse internal constructor(
-    responses: Collection<SetResponse>,
-) : ArrayList<SetResponse>(responses) {
-    internal constructor(vararg setResponse: SetResponse) : this(setResponse.toList())
-}
+open class UpdateRequest @JvmOverloads constructor(
+    override val vssPath: String,
+    val dataPoint: Datapoint,
+    override vararg val fields: Types.Field = arrayOf(Types.Field.FIELD_VALUE),
+) : DataBrokerRequest

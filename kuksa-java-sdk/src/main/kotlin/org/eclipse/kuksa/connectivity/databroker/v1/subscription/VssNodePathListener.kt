@@ -16,10 +16,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package org.eclipse.kuksa.connectivity.databroker.subscription
+package org.eclipse.kuksa.connectivity.databroker.v1.subscription
 
-import org.eclipse.kuksa.connectivity.databroker.listener.VssNodeListener
-import org.eclipse.kuksa.connectivity.databroker.listener.VssPathListener
+import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssNodeListener
+import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
 import org.eclipse.kuksa.extension.vss.copy
 import org.eclipse.kuksa.proto.v1.KuksaValV1
 import org.eclipse.kuksa.vsscore.model.VssNode

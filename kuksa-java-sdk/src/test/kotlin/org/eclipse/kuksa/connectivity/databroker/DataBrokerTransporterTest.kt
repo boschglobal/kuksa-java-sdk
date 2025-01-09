@@ -28,7 +28,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
-import org.eclipse.kuksa.connectivity.databroker.listener.VssPathListener
+import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerTransporter
+import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
 import org.eclipse.kuksa.extensions.updateRandomFloatValue
 import org.eclipse.kuksa.mocking.FriendlyVssPathListener
 import org.eclipse.kuksa.proto.v1.KuksaValV1

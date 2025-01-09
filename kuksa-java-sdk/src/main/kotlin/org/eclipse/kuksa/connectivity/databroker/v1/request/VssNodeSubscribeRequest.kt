@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,17 @@
  * limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 
-package org.eclipse.kuksa.connectivity.databroker.request
+package org.eclipse.kuksa.connectivity.databroker.v1.request
 
 import org.eclipse.kuksa.proto.v1.Types
 import org.eclipse.kuksa.vsscore.model.VssNode
 
 /**
  * Used for subscribe requests with a generated [VssNode] model and
- * [org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection.subscribe].
+ * [org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection.subscribe].
  */
 class VssNodeSubscribeRequest<T : VssNode> @JvmOverloads constructor(
     override val vssNode: T,
