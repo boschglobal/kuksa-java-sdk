@@ -26,6 +26,7 @@ import io.grpc.stub.MetadataUtils
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.proto.v1.VALGrpc.VALBlockingStub
 import org.eclipse.kuksa.proto.v1.VALGrpc.VALStub
+import org.eclipse.kuksa.proto.v1.VALGrpcKt.VALCoroutineStub
 
 internal fun VALBlockingStub.withAuthenticationInterceptor(jsonWebToken: JsonWebToken?): VALBlockingStub {
     if (jsonWebToken == null) return this
@@ -35,6 +36,15 @@ internal fun VALBlockingStub.withAuthenticationInterceptor(jsonWebToken: JsonWeb
 }
 
 internal fun VALStub.withAuthenticationInterceptor(jsonWebToken: JsonWebToken?): VALStub {
+    if (jsonWebToken == null) return this
+
+    val authenticationInterceptor = clientInterceptor(jsonWebToken)
+    return withInterceptors(authenticationInterceptor)
+}
+
+internal fun VALCoroutineStub.withAuthenticationInterceptor(
+    jsonWebToken: JsonWebToken?,
+): VALCoroutineStub {
     if (jsonWebToken == null) return this
 
     val authenticationInterceptor = clientInterceptor(jsonWebToken)

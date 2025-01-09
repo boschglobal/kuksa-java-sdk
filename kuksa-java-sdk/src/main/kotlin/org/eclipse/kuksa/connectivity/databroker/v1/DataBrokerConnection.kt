@@ -61,7 +61,6 @@ class DataBrokerConnection internal constructor(
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val dataBrokerTransporter: DataBrokerTransporter = DataBrokerTransporter(
         managedChannel,
-        dispatcher,
     ),
     private val dataBrokerSubscriber: DataBrokerSubscriber = DataBrokerSubscriber(dataBrokerTransporter),
 ) {

@@ -22,11 +22,8 @@ package org.eclipse.kuksa.connectivity.databroker.v1
 import io.grpc.ConnectivityState
 import io.grpc.Context
 import io.grpc.ManagedChannel
-import io.grpc.StatusRuntimeException
+import io.grpc.StatusException
 import io.grpc.stub.StreamObserver
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
 import org.eclipse.kuksa.connectivity.databroker.v1.extension.withAuthenticationInterceptor
@@ -38,6 +35,7 @@ import org.eclipse.kuksa.proto.v1.KuksaValV1.SubscribeResponse
 import org.eclipse.kuksa.proto.v1.Types
 import org.eclipse.kuksa.proto.v1.Types.Field
 import org.eclipse.kuksa.proto.v1.VALGrpc
+import org.eclipse.kuksa.proto.v1.VALGrpcKt
 import java.util.logging.Logger
 
 /**
@@ -50,7 +48,6 @@ import java.util.logging.Logger
  */
 internal class DataBrokerTransporter(
     private val managedChannel: ManagedChannel,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
 
     private val logger = Logger.getLogger(TAG)
@@ -61,6 +58,9 @@ internal class DataBrokerTransporter(
             "ManagedChannel needs to be connected to the target"
         }
     }
+
+    private val coroutineStub = VALGrpcKt.VALCoroutineStub(managedChannel)
+    private val asyncStub = VALGrpc.newStub(managedChannel)
 
     /**
      * A JsonWebToken can be provided to authenticate against the DataBroker.
@@ -76,23 +76,20 @@ internal class DataBrokerTransporter(
         vssPath: String,
         fields: Collection<Field>,
     ): KuksaValV1.GetResponse {
-        return withContext(defaultDispatcher) {
-            val blockingStub = VALGrpc.newBlockingStub(managedChannel)
-            val entryRequest = KuksaValV1.EntryRequest.newBuilder()
-                .setPath(vssPath)
-                .addAllFields(fields.toSet())
-                .build()
-            val request = KuksaValV1.GetRequest.newBuilder()
-                .addEntries(entryRequest)
-                .build()
+        val entryRequest = KuksaValV1.EntryRequest.newBuilder()
+            .setPath(vssPath)
+            .addAllFields(fields.toSet())
+            .build()
+        val request = KuksaValV1.GetRequest.newBuilder()
+            .addEntries(entryRequest)
+            .build()
 
-            return@withContext try {
-                blockingStub
-                    .withAuthenticationInterceptor(jsonWebToken)
-                    .get(request)
-            } catch (e: StatusRuntimeException) {
-                throw DataBrokerException(e.message, e)
-            }
+        return try {
+            coroutineStub
+                .withAuthenticationInterceptor(jsonWebToken)
+                .get(request)
+        } catch (e: StatusException) {
+            throw DataBrokerException(e.message, e)
         }
     }
 
@@ -107,32 +104,28 @@ internal class DataBrokerTransporter(
         updatedDatapoint: Types.Datapoint,
         fields: Collection<Field>,
     ): KuksaValV1.SetResponse {
-        return withContext(defaultDispatcher) {
-            val blockingStub = VALGrpc.newBlockingStub(managedChannel)
-
-            val entryUpdates = fields.map { field ->
-                val dataEntry = Types.DataEntry.newBuilder()
-                    .setPath(vssPath)
-                    .applyDatapoint(updatedDatapoint, field)
-                    .build()
-
-                KuksaValV1.EntryUpdate.newBuilder()
-                    .setEntry(dataEntry)
-                    .addFields(field)
-                    .build()
-            }
-
-            val request = KuksaValV1.SetRequest.newBuilder()
-                .addAllUpdates(entryUpdates)
+        val entryUpdates = fields.map { field ->
+            val dataEntry = Types.DataEntry.newBuilder()
+                .setPath(vssPath)
+                .applyDatapoint(updatedDatapoint, field)
                 .build()
 
-            return@withContext try {
-                blockingStub
-                    .withAuthenticationInterceptor(jsonWebToken)
-                    .set(request)
-            } catch (e: StatusRuntimeException) {
-                throw DataBrokerException(e.message, e)
-            }
+            KuksaValV1.EntryUpdate.newBuilder()
+                .setEntry(dataEntry)
+                .addFields(field)
+                .build()
+        }
+
+        val request = KuksaValV1.SetRequest.newBuilder()
+            .addAllUpdates(entryUpdates)
+            .build()
+
+        return try {
+            coroutineStub
+                .withAuthenticationInterceptor(jsonWebToken)
+                .set(request)
+        } catch (e: StatusException) {
+            throw DataBrokerException(e.message, e)
         }
     }
 
@@ -147,8 +140,6 @@ internal class DataBrokerTransporter(
         vssPath: String,
         field: Field,
     ): DataBrokerSubscription {
-        val asyncStub = VALGrpc.newStub(managedChannel)
-
         val subscribeEntry = KuksaValV1.SubscribeEntry.newBuilder()
             .setPath(vssPath)
             .addFields(field)
@@ -189,7 +180,7 @@ internal class DataBrokerTransporter(
                 asyncStub
                     .withAuthenticationInterceptor(jsonWebToken)
                     .subscribe(request, streamObserver)
-            } catch (e: StatusRuntimeException) {
+            } catch (e: StatusException) {
                 throw DataBrokerException(e.message, e)
             }
         }
