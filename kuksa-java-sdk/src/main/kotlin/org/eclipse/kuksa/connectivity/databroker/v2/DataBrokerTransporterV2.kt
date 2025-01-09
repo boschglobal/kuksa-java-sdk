@@ -22,6 +22,7 @@ package org.eclipse.kuksa.connectivity.databroker.v2
 import io.grpc.ConnectivityState
 import io.grpc.ManagedChannel
 import io.grpc.StatusException
+import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.flow.Flow
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
@@ -29,6 +30,7 @@ import org.eclipse.kuksa.connectivity.databroker.v2.extension.withAuthentication
 import org.eclipse.kuksa.proto.v2.KuksaValV2
 import org.eclipse.kuksa.proto.v2.Types
 import org.eclipse.kuksa.proto.v2.Types.Value
+import org.eclipse.kuksa.proto.v2.VALGrpc
 import org.eclipse.kuksa.proto.v2.VALGrpcKt
 import org.eclipse.kuksa.proto.v2.actuateRequest
 import org.eclipse.kuksa.proto.v2.batchActuateRequest
@@ -63,6 +65,7 @@ internal class DataBrokerTransporterV2(
     var jsonWebToken: JsonWebToken? = null
 
     private val coroutineStub: VALGrpcKt.VALCoroutineStub = VALGrpcKt.VALCoroutineStub(managedChannel)
+    private val asyncStub: VALGrpc.VALStub = VALGrpc.newStub(managedChannel)
 
     /**
      * Gets the latest value of a [signalId].
@@ -281,12 +284,12 @@ internal class DataBrokerTransporterV2(
      *  Errors are communicated as messages in the stream.
      */
     fun openProviderStream(
-        streamRequestFlow: Flow<KuksaValV2.OpenProviderStreamRequest>,
-    ): Flow<KuksaValV2.OpenProviderStreamResponse> {
+        responseStream: StreamObserver<KuksaValV2.OpenProviderStreamResponse>,
+    ): StreamObserver<KuksaValV2.OpenProviderStreamRequest> {
         return try {
-            coroutineStub
+            asyncStub
                 .withAuthenticationInterceptor(jsonWebToken)
-                .openProviderStream(streamRequestFlow)
+                .openProviderStream(responseStream)
         } catch (e: StatusException) {
             throw DataBrokerException(e.message, e)
         }

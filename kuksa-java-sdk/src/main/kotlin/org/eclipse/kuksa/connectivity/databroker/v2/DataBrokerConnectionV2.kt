@@ -21,8 +21,10 @@ package org.eclipse.kuksa.connectivity.databroker.v2
 
 import io.grpc.ConnectivityState
 import io.grpc.ManagedChannel
+import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.flow.Flow
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
+import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
 import org.eclipse.kuksa.connectivity.databroker.DisconnectListener
 import org.eclipse.kuksa.connectivity.databroker.v2.request.ActuateRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.BatchActuateRequestV2
@@ -38,6 +40,11 @@ import org.eclipse.kuksa.proto.v2.KuksaValV2
 import java.util.logging.Logger
 import kotlin.properties.Delegates
 
+/**
+ * The DataBrokerConnection holds an active connection to the DataBroker. The Connection can be use to interact with the
+ * DataBroker.
+ */
+@Suppress("TooManyFunctions") // most methods are simply exposed from transporter layer
 class DataBrokerConnectionV2 internal constructor(
     private val managedChannel: ManagedChannel,
     private val dataBrokerTransporter: DataBrokerTransporterV2 = DataBrokerTransporterV2(managedChannel),
@@ -77,6 +84,8 @@ class DataBrokerConnectionV2 internal constructor(
      * The server might respond with the following GRPC error codes:
      *    NOT_FOUND if the requested signal doesn't exist
      *    PERMISSION_DENIED if access is denied
+     *
+     * @throws DataBrokerException when an error occurs
      */
     suspend fun fetchValue(request: FetchValueRequestV2): KuksaValV2.GetValueResponse {
         return dataBrokerTransporter.fetchValue(request.signalId)
@@ -89,6 +98,9 @@ class DataBrokerConnectionV2 internal constructor(
      * The server might respond with the following GRPC error codes:
      *    NOT_FOUND if any of the requested signals doesn't exist.
      *    PERMISSION_DENIED if access is denied for any of the requested signals.
+     *
+     * @throws DataBrokerException when an error occurs
+     *
      */
     suspend fun fetchValues(request: FetchValuesRequestV2): KuksaValV2.GetValuesResponse {
         return dataBrokerTransporter.fetchValues(request.signalIds)
@@ -99,6 +111,8 @@ class DataBrokerConnectionV2 internal constructor(
      * Returns (GRPC error code):
      *    NOT_FOUND if any of the signals are non-existent.
      *    PERMISSION_DENIED if access is denied for any of the signals.
+     *
+     * @throws DataBrokerException when an error occurs
      */
     fun subscribeById(
         request: SubscribeByIdRequestV2,
@@ -115,6 +129,8 @@ class DataBrokerConnectionV2 internal constructor(
      * When subscribing the Broker shall immediately return the value for all
      * subscribed entries. If no value is available when subscribing a DataPoint
      * with value None shall be returned.
+     *
+     * @throws DataBrokerException when an error occurs
      */
     fun subscribe(
         request: SubscribeRequestV2,
@@ -132,6 +148,8 @@ class DataBrokerConnectionV2 internal constructor(
      *    INVALID_ARGUMENT
      *        - if the data type used in the request does not match the data type of the addressed signal
      *        - if the requested value is not accepted, e.g. if sending an unsupported enum value
+     *
+     * @throws DataBrokerException when an error occurs
      */
     suspend fun actuate(request: ActuateRequestV2): KuksaValV2.ActuateResponse {
         return dataBrokerTransporter.actuate(request.signalId, request.value)
@@ -150,6 +168,7 @@ class DataBrokerConnectionV2 internal constructor(
      *         - if the data type used in the request does not match the data type of the addressed signal
      *         - if the requested value is not accepted, e.g. if sending an unsupported enum value
      *
+     * @throws DataBrokerException when an error occurs
      */
     suspend fun batchActuate(request: BatchActuateRequestV2): KuksaValV2.BatchActuateResponse {
         return dataBrokerTransporter.batchActuate(request.signalIds, request.value)
@@ -162,6 +181,8 @@ class DataBrokerConnectionV2 internal constructor(
      *
      * The server might respond with the following GRPC error codes:
      *     NOT_FOUND if the specified root branch does not exist.
+     *
+     * @throws DataBrokerException when an error occurs
      */
     suspend fun listMetadata(request: ListMetadataRequestV2): KuksaValV2.ListMetadataResponse {
         return dataBrokerTransporter.listMetadata(request.root, request.filter)
@@ -178,6 +199,8 @@ class DataBrokerConnectionV2 internal constructor(
      *     INVALID_ARGUMENT
      *        - if the data type used in the request does not match the data type of the addressed signal
      *        - if the published value is not accepted e.g. if sending an unsupported enum value
+     *
+     * @throws DataBrokerException when an error occurs
      */
     suspend fun publishValue(
         request: PublishValueRequestV2,
@@ -193,17 +216,29 @@ class DataBrokerConnectionV2 internal constructor(
      *  The open stream is used for request / response type communication between the
      *  provider and server (where the initiator of a request can vary).
      *  Errors are communicated as messages in the stream.
+     *
+     * @throws DataBrokerException when an error occurs
      */
     fun openProviderStream(
-        streamRequestFlow: Flow<KuksaValV2.OpenProviderStreamRequest>,
-    ): Flow<KuksaValV2.OpenProviderStreamResponse> {
-        return dataBrokerTransporter.openProviderStream(streamRequestFlow)
+        responseStream: StreamObserver<KuksaValV2.OpenProviderStreamResponse>,
+    ): StreamObserver<KuksaValV2.OpenProviderStreamRequest> {
+        return dataBrokerTransporter.openProviderStream(responseStream)
     }
 
     /**
      * Gets the server information.
+     *
+     * @throws DataBrokerException when an error occurs
      */
     suspend fun fetchServerInfo(): KuksaValV2.GetServerInfoResponse {
         return dataBrokerTransporter.fetchServerInfo()
+    }
+
+    /**
+     * Disconnect from the DataBroker.
+     */
+    fun disconnect() {
+        logger.finer("disconnect() called")
+        managedChannel.shutdownNow()
     }
 }

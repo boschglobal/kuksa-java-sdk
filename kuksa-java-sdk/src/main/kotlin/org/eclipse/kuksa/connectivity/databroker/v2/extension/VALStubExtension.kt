@@ -24,11 +24,21 @@ import io.grpc.ClientInterceptor
 import io.grpc.Metadata
 import io.grpc.stub.MetadataUtils
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
+import org.eclipse.kuksa.proto.v2.VALGrpc
 import org.eclipse.kuksa.proto.v2.VALGrpcKt
 
 internal fun VALGrpcKt.VALCoroutineStub.withAuthenticationInterceptor(
     jsonWebToken: JsonWebToken?,
 ): VALGrpcKt.VALCoroutineStub {
+    if (jsonWebToken == null) return this
+
+    val authenticationInterceptor = clientInterceptor(jsonWebToken)
+    return withInterceptors(authenticationInterceptor)
+}
+
+internal fun VALGrpc.VALStub.withAuthenticationInterceptor(
+    jsonWebToken: JsonWebToken?,
+): VALGrpc.VALStub {
     if (jsonWebToken == null) return this
 
     val authenticationInterceptor = clientInterceptor(jsonWebToken)
