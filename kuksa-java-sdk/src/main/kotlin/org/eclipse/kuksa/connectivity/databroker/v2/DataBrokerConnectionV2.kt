@@ -24,11 +24,17 @@ import io.grpc.ManagedChannel
 import kotlinx.coroutines.flow.Flow
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.databroker.DisconnectListener
+import org.eclipse.kuksa.connectivity.databroker.v2.request.ActuateRequestV2
+import org.eclipse.kuksa.connectivity.databroker.v2.request.BatchActuateRequestV2
+import org.eclipse.kuksa.connectivity.databroker.v2.request.FetchValueRequestV2
+import org.eclipse.kuksa.connectivity.databroker.v2.request.FetchValuesRequestV2
+import org.eclipse.kuksa.connectivity.databroker.v2.request.ListMetadataRequestV2
+import org.eclipse.kuksa.connectivity.databroker.v2.request.PublishValueRequestV2
+import org.eclipse.kuksa.connectivity.databroker.v2.request.SubscribeByIdRequestV2
+import org.eclipse.kuksa.connectivity.databroker.v2.request.SubscribeRequestV2
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.pattern.listener.MultiListener
 import org.eclipse.kuksa.proto.v2.KuksaValV2
-import org.eclipse.kuksa.proto.v2.Types
-import org.eclipse.kuksa.proto.v2.Types.Value
 import java.util.logging.Logger
 import kotlin.properties.Delegates
 
@@ -72,8 +78,8 @@ class DataBrokerConnectionV2 internal constructor(
      *    NOT_FOUND if the requested signal doesn't exist
      *    PERMISSION_DENIED if access is denied
      */
-    suspend fun fetchValue(signalId: Types.SignalID): KuksaValV2.GetValueResponse {
-        return dataBrokerTransporter.fetchValue(signalId)
+    suspend fun fetchValue(request: FetchValueRequestV2): KuksaValV2.GetValueResponse {
+        return dataBrokerTransporter.fetchValue(request.signalId)
     }
 
     /**
@@ -84,8 +90,8 @@ class DataBrokerConnectionV2 internal constructor(
      *    NOT_FOUND if any of the requested signals doesn't exist.
      *    PERMISSION_DENIED if access is denied for any of the requested signals.
      */
-    suspend fun fetchValues(signalIds: List<Types.SignalID>): KuksaValV2.GetValuesResponse {
-        return dataBrokerTransporter.fetchValues(signalIds)
+    suspend fun fetchValues(request: FetchValuesRequestV2): KuksaValV2.GetValuesResponse {
+        return dataBrokerTransporter.fetchValues(request.signalIds)
     }
 
     /**
@@ -95,9 +101,9 @@ class DataBrokerConnectionV2 internal constructor(
      *    PERMISSION_DENIED if access is denied for any of the signals.
      */
     fun subscribeById(
-        signalIds: List<Int>,
+        request: SubscribeByIdRequestV2,
     ): Flow<KuksaValV2.SubscribeByIdResponse> {
-        return dataBrokerTransporter.subscribeById(signalIds)
+        return dataBrokerTransporter.subscribeById(request.signalIds)
     }
 
     /**
@@ -111,9 +117,9 @@ class DataBrokerConnectionV2 internal constructor(
      * with value None shall be returned.
      */
     fun subscribe(
-        signalPaths: List<String>,
+        request: SubscribeRequestV2,
     ): Flow<KuksaValV2.SubscribeResponse> {
-        return dataBrokerTransporter.subscribe(signalPaths)
+        return dataBrokerTransporter.subscribe(request.signalPaths)
     }
 
     /**
@@ -127,8 +133,8 @@ class DataBrokerConnectionV2 internal constructor(
      *        - if the data type used in the request does not match the data type of the addressed signal
      *        - if the requested value is not accepted, e.g. if sending an unsupported enum value
      */
-    suspend fun actuate(signalId: Types.SignalID, value: Value): KuksaValV2.ActuateResponse {
-        return dataBrokerTransporter.actuate(signalId, value)
+    suspend fun actuate(request: ActuateRequestV2): KuksaValV2.ActuateResponse {
+        return dataBrokerTransporter.actuate(request.signalId, request.value)
     }
 
     /**
@@ -145,8 +151,8 @@ class DataBrokerConnectionV2 internal constructor(
      *         - if the requested value is not accepted, e.g. if sending an unsupported enum value
      *
      */
-    suspend fun batchActuate(signalIds: List<Types.SignalID>, value: Value): KuksaValV2.BatchActuateResponse {
-        return dataBrokerTransporter.batchActuate(signalIds, value)
+    suspend fun batchActuate(request: BatchActuateRequestV2): KuksaValV2.BatchActuateResponse {
+        return dataBrokerTransporter.batchActuate(request.signalIds, request.value)
     }
 
     /**
@@ -157,11 +163,8 @@ class DataBrokerConnectionV2 internal constructor(
      * The server might respond with the following GRPC error codes:
      *     NOT_FOUND if the specified root branch does not exist.
      */
-    suspend fun listMetadata(
-        root: String,
-        filter: String,
-    ): KuksaValV2.ListMetadataResponse {
-        return dataBrokerTransporter.listMetadata(root, filter)
+    suspend fun listMetadata(request: ListMetadataRequestV2): KuksaValV2.ListMetadataResponse {
+        return dataBrokerTransporter.listMetadata(request.root, request.filter)
     }
 
     /**
@@ -177,10 +180,9 @@ class DataBrokerConnectionV2 internal constructor(
      *        - if the published value is not accepted e.g. if sending an unsupported enum value
      */
     suspend fun publishValue(
-        signalId: Types.SignalID,
-        datapoint: Types.Datapoint,
+        request: PublishValueRequestV2,
     ): KuksaValV2.PublishValueResponse {
-        return dataBrokerTransporter.publishValue(signalId, datapoint)
+        return dataBrokerTransporter.publishValue(request.signalId, request.datapoint)
     }
 
     /**
