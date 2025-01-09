@@ -7,6 +7,7 @@ kotlin = "1.9.22"
 tomcatAnnotations = "6.0.53"
 ktlint = "0.0" # Maintained inside ktlint.gradle.kts
 grpc = "1.65.1"
+grpcKotlin = "1.4.1"
 protobufGradlePlugin = "0.9.4"
 protobuf = "3.25.3"
 kotest = "5.7.2"
@@ -20,6 +21,10 @@ docker-java-transport-httpclient5 = { module = "com.github.docker-java:docker-ja
 grpc-okhttp = { group = "io.grpc", name = "grpc-okhttp", version.ref = "grpc" }
 grpc-protobuf = { group = "io.grpc", name = "grpc-protobuf-lite", version.ref = "grpc" }
 grpc-stub = { group = "io.grpc", name = "grpc-stub", version.ref = "grpc" }
+grpc-kotlin-stub = { group = "io.grpc", name = "grpc-kotlin-stub", version.ref = "grpcKotlin" }
+protoc-gen-grpc-kotlin = { group = "io.grpc", name = "protoc-gen-grpc-kotlin", version.ref = "grpcKotlin" }
+protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-lite", version.ref = "protobuf" }
+
 tomcat-annotations = { group = "org.apache.tomcat", name = "annotations-api", version.ref = "tomcatAnnotations" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
