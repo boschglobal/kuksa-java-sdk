@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 @file:Suppress("UnstableApiUsage")
 
-import com.google.protobuf.gradle.id
 import org.eclipse.kuksa.version.SemanticVersion
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_PATH_KEY
 import org.jetbrains.dokka.gradle.DokkaTask
@@ -95,11 +94,13 @@ dependencies {
 
     // needs to be api as long as we expose ProtoBuf specific objects
     api(libs.grpc.protobuf)
+    api(libs.protobuf.kotlin.lite)
 
     implementation(kotlin("reflect"))
 
     implementation(libs.grpc.okhttp)
     implementation(libs.grpc.stub)
+    implementation(libs.grpc.kotlin.stub)
     implementation(libs.tomcat.annotations)
     implementation(libs.kotlinx.coroutines.core)
 
@@ -116,20 +117,29 @@ protobuf {
         artifact = libs.protobuf.protoc.get().toString()
     }
     plugins {
-        id("grpc") {
+        create("grpc") {
             artifact = libs.grpc.protoc.java.gen.get().toString()
         }
-        generateProtoTasks {
-            all().forEach {
-                it.builtins {
-                    named("java") {
-                        option("lite")
-                    }
+        create("grpckt") {
+            artifact = libs.protoc.gen.grpc.kotlin.get().toString() + ":jdk8@jar"
+        }
+    }
+    generateProtoTasks {
+        all().forEach {
+            it.builtins {
+                named("java") {
+                    option("lite")
                 }
-                it.plugins {
-                    create("grpc") {
-                        option("lite")
-                    }
+                create("kotlin") {
+                    option("lite")
+                }
+            }
+            it.plugins {
+                create("grpc") {
+                    option("lite")
+                }
+                create("grpckt") {
+                    option("lite")
                 }
             }
         }

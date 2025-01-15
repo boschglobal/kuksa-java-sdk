@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Gitter](https://img.shields.io/gitter/room/kuksa-val/community)](https://gitter.im/kuksa-val/community)
 
-[![SDK:main <-> Databroker:master](https://github.com/eclipse-kuksa/kuksa-java-sdk/actions/workflows/daily_integration_main-master.yaml/badge.svg)](https://github.com/eclipse-kuksa/kuksa-java-sdk/actions/workflows/daily_integration_main-master.yaml?query=branch%3Amain)
+[![SDK:main <-> Databroker:main](https://github.com/eclipse-kuksa/kuksa-java-sdk/actions/workflows/daily_integration_main.yaml/badge.svg)](https://github.com/eclipse-kuksa/kuksa-java-sdk/actions/workflows/daily_integration_main.yaml?query=branch%3Amain)
 
 This is a Java SDK for the [KUKSA Vehicle Abstraction Layer](https://github.com/eclipse-kuksa/kuksa-databroker).
 
@@ -12,6 +12,41 @@ This is a Java SDK for the [KUKSA Vehicle Abstraction Layer](https://github.com/
 The KUKSA Java SDK allows you to interact with [VSS data](https://covesa.github.io/vehicle_signal_specification/)
 from the [KUKSA Databroker](https://github.com/eclipse-kuksa/kuksa-databroker/tree/main/)
 within a Java Application. The main functionality consists of fetching, updating and subscribing to VSS data.
+
+Currently the following protocols are supported:
+- kuksa.val.v1
+- kuksa.val.v2
+
+## kuksa.val.v1
+
+You can interact with the Databroker using the kuksa.val.v1 interface by using the 
+org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnector class.
+
+After successfully connecting the following methods are supported by org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection:
+- subscribe(SubscribeRequest, VssPathListener)
+- unsubscribe(SubscribeRequest, VssPathListener)
+- subscribe(VssNodeSubscribeRequest<T>, VssNodeListener<T>)
+- unsubscribe(VssNodeSubscribeRequest<T>, VssNodeListener<T>)
+- fetch(FetchRequest): GetResponse
+- fetch(VssNodeFetchRequest<T>): T
+- update(UpdateRequest): SetResponse
+- update(VssNodeUpdateRequest<T>): VssNodeUpdateResponse
+
+## kuksa.val.v2
+
+You can interact with the Databroker using the kuksa.val.v1 interface by using the
+org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectorV2 class.
+
+After successfully connecting the following methods are supported by org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectionV2:
+- fetchValue(FetchValueRequestV2): GetValueResponse
+- fetchValues(FetchValuesRequestV2): GetValuesResponse
+- subscribeById(SubscribeByIdRequestV2): Flow<SubscribeByIdResponse>
+- subscribe(SubscribeRequestV2): Flow<SubscribeResponse>
+- actuate(ActuateRequestV2): ActuateResponse
+- batchActuate(BatchActuateRequestV2): BatchActuateResponse
+- listMetadata(ListMetadataRequestV2): ListMetadataResponse
+- publishValue(PublishValueRequestV2): PublishValueResponse
+- openProviderStream(StreamObserver<OpenProviderStreamResponse>): StreamObserver<OpenProviderStreamRequest>
 
 ## Integration
 
@@ -23,8 +58,7 @@ implementation("org.eclipse.kuksa:kuksa-java-sdk:<VERSION>")
 The latest release version can be seen [here](https://github.com/eclipse-kuksa/kuksa-java-sdk/releases).
 
 
-See the [quickstart guide](https://github.com/eclipse-kuksa/kuksa-java-sdk/tree/main/docs/QUICKSTART.md) for
-additional integration options.
+See the [quickstart guide](https://github.com/eclipse-kuksa/kuksa-java-sdk/tree/main/docs/QUICKSTART.md) for additional integration options.
 
 ### Maven Central
 

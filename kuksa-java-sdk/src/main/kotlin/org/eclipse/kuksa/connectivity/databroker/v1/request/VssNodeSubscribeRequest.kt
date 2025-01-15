@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,19 @@
  *
  */
 
-package org.eclipse.kuksa.mocking
+package org.eclipse.kuksa.connectivity.databroker.v1.request
 
-import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssNodeListener
+import org.eclipse.kuksa.proto.v1.Types
 import org.eclipse.kuksa.vsscore.model.VssNode
 
-class FriendlyVssNodeListener<T : VssNode> : VssNodeListener<T> {
-    val updatedVssNodes = mutableListOf<T>()
-    val errors = mutableListOf<Throwable>()
-
-    override fun onNodeChanged(vssNode: T) {
-        updatedVssNodes.add(vssNode)
-    }
-
-    override fun onError(throwable: Throwable) {
-        errors.add(throwable)
-    }
-
-    fun reset() {
-        updatedVssNodes.clear()
-        errors.clear()
-    }
+/**
+ * Used for subscribe requests with a generated [VssNode] model and
+ * [org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection.subscribe].
+ */
+class VssNodeSubscribeRequest<T : VssNode> @JvmOverloads constructor(
+    override val vssNode: T,
+    override vararg val fields: Types.Field = arrayOf(Types.Field.FIELD_VALUE),
+) : VssNodeDataBrokerRequest<T> {
+    override val vssPath: String
+        get() = vssNode.vssPath
 }

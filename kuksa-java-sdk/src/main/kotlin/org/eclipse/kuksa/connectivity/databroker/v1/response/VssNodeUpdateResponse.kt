@@ -14,37 +14,18 @@
  * limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
- *
  */
 
-pluginManagement {
+package org.eclipse.kuksa.connectivity.databroker.v1.response
 
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-    }
+import org.eclipse.kuksa.proto.v1.KuksaValV1.SetResponse
 
-    // Version catalog can't be used here
-    plugins {
-        id("com.google.devtools.ksp") version "1.9.22-1.0.17"
-        kotlin("jvm")
-        kotlin("plugin.serialization") version "1.9.22"
-    }
+/**
+ *  Represents a collection of [SetResponse]s.
+ */
+// Necessary to ensure Java compatibility with generics + suspend functions.
+class VssNodeUpdateResponse internal constructor(
+    responses: Collection<SetResponse>,
+) : ArrayList<SetResponse>(responses) {
+    internal constructor(vararg setResponse: SetResponse) : this(setResponse.toList())
 }
-
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        mavenLocal()
-        google()
-        mavenCentral()
-    }
-}
-
-rootProject.name = "kuksa-java-sdk"
-
-include(":kuksa-java-sdk")
-include(":vss-core")
-include(":test-core")
-include(":samples")

@@ -19,7 +19,7 @@
 
 package org.eclipse.kuksa.mocking
 
-import org.eclipse.kuksa.connectivity.databroker.listener.VssPathListener
+import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
 import org.eclipse.kuksa.proto.v1.KuksaValV1
 
 class FriendlyVssPathListener : VssPathListener {

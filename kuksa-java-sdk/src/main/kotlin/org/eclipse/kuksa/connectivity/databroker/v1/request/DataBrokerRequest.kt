@@ -14,37 +14,25 @@
  * limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
- *
  */
 
-pluginManagement {
+package org.eclipse.kuksa.connectivity.databroker.v1.request
 
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-    }
+import org.eclipse.kuksa.proto.v1.Types.Field
+import org.eclipse.kuksa.proto.v1.Types.Field.FIELD_VALUE
 
-    // Version catalog can't be used here
-    plugins {
-        id("com.google.devtools.ksp") version "1.9.22-1.0.17"
-        kotlin("jvm")
-        kotlin("plugin.serialization") version "1.9.22"
-    }
+/**
+ * Consists of request information for the [org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection].
+ */
+interface DataBrokerRequest {
+    /**
+     * The VehicleSignalSpecification (VSS) path.
+     */
+    val vssPath: String
+
+    /**
+     * The corresponding field type(s) of the [vssPath] request. The [fields] can be used to subscribe to different
+     * information. The default is [FIELD_VALUE].
+     */
+    val fields: Array<out Field>
 }
-
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        mavenLocal()
-        google()
-        mavenCentral()
-    }
-}
-
-rootProject.name = "kuksa-java-sdk"
-
-include(":kuksa-java-sdk")
-include(":vss-core")
-include(":test-core")
-include(":samples")
