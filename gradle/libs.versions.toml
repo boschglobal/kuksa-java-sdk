@@ -4,7 +4,6 @@ detekt = "1.23.6"
 dockerJavaCore = "3.4.1"
 dokka = "1.9.10"
 kotlin = "1.9.22"
-tomcatAnnotations = "6.0.53"
 ktlint = "0.0" # Maintained inside ktlint.gradle.kts
 grpc = "1.65.1"
 grpcKotlin = "1.4.1"
@@ -25,7 +24,6 @@ grpc-kotlin-stub = { group = "io.grpc", name = "grpc-kotlin-stub", version.ref =
 protoc-gen-grpc-kotlin = { group = "io.grpc", name = "protoc-gen-grpc-kotlin", version.ref = "grpcKotlin" }
 protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-lite", version.ref = "protobuf" }
 
-tomcat-annotations = { group = "org.apache.tomcat", name = "annotations-api", version.ref = "tomcatAnnotations" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 
@@ -44,4 +42,3 @@ grpc-protoc-java-gen = { group = "io.grpc", name = "protoc-gen-grpc-java", versi
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
-pluginPublishing = { id = "com.gradle.plugin-publish", version = "1.2.1" }

@@ -101,7 +101,6 @@ dependencies {
     implementation(libs.grpc.okhttp)
     implementation(libs.grpc.stub)
     implementation(libs.grpc.kotlin.stub)
-    implementation(libs.tomcat.annotations)
     implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.kotlinx.coroutines.test)
