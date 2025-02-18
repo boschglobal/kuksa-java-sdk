@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 
 package org.eclipse.kuksa.extension.vss
@@ -57,7 +58,8 @@ fun <T : VssNode> T.deepCopy(generation: Int = 0, changedHeritage: List<VssNode>
     // Create the missing link between this [VssNode] and the given node inbetween
     var heritageLine = changedHeritage
     if (changedHeritage.size == 1) {
-        heritageLine = findHeritageLine(changedHeritage.first(), true)
+        val heir = changedHeritage.firstOrNull()!! // safe cast to non-null because size == 1
+        heritageLine = findHeritageLine(heir, true)
             .toList()
             .ifEmpty { changedHeritage }
     }
