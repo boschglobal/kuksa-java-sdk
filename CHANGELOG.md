@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.2](https://github.com/eclipse-kuksa/kuksa-java-sdk/compare/release/release/v0.3.1...release/v0.3.2) (2025-02-20)
+
+
+### Bug Fixes
+
+* Dependency Clash with annotations-api ([32f33e1](https://github.com/eclipse-kuksa/kuksa-java-sdk/commit/32f33e18f4e107cb2cdb3c50060eb3b412de7339))
+
 ## 0.3.1 (2025-01-15)
 
 
