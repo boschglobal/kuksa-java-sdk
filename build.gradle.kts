@@ -39,6 +39,16 @@ plugins {
     version
     kotlin("jvm")
     jacoco
+    alias(libs.plugins.gradle.nexus.publish.plugin)
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            username = System.getenv("ORG_OSSRH_USERNAME")
+            password = System.getenv("ORG_OSSRH_PASSWORD")
+        }
+    }
 }
 
 subprojects {

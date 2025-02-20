@@ -2,7 +2,7 @@
 androidGradlePlugin = "8.3.2" # Check with detekt table first: https://detekt.dev/docs/introduction/compatibility/
 detekt = "1.23.6"
 dockerJavaCore = "3.4.1"
-dokka = "1.9.10"
+dokka = "1.9.20"
 kotlin = "1.9.22"
 ktlint = "0.0" # Maintained inside ktlint.gradle.kts
 grpc = "1.65.1"
@@ -42,3 +42,4 @@ grpc-protoc-java-gen = { group = "io.grpc", name = "protoc-gen-grpc-java", versi
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+gradle-nexus-publish-plugin = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
