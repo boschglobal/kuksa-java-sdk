@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,16 @@ plugins {
     version
     kotlin("jvm")
     jacoco
+    alias(libs.plugins.gradle.nexus.publish.plugin)
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            username = System.getenv("ORG_OSSRH_USERNAME")
+            password = System.getenv("ORG_OSSRH_PASSWORD")
+        }
+    }
 }
 
 subprojects {
@@ -59,6 +69,12 @@ subprojects {
             systemPropertiesMap[key.toString()] = value.toString()
         }
         systemProperties = systemPropertiesMap
+    }
+
+    // https://docs.gradle.org/current/userguide/dependency_locking.html
+    dependencyLocking {
+        lockAllConfigurations()
+        lockFile = file("$projectDir/gradle.lockfile")
     }
 }
 

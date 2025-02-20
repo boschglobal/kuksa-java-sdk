@@ -88,21 +88,18 @@ java {
 }
 
 dependencies {
-    api(project(":vss-core")) // Models are exposed
-
-    testImplementation(project(":test-core"))
-
-    // needs to be api as long as we expose ProtoBuf specific objects
-    api(libs.grpc.protobuf)
-    api(libs.protobuf.kotlin.lite)
-
     implementation(kotlin("reflect"))
 
+    api(project(":vss-core")) // models are exposed
+    api(libs.grpc.protobuf) // needs to be api as long as we expose ProtoBuf specific objects
+
+    implementation(libs.protobuf.kotlin.lite)
     implementation(libs.grpc.okhttp)
     implementation(libs.grpc.stub)
     implementation(libs.grpc.kotlin.stub)
-    implementation(libs.tomcat.annotations)
     implementation(libs.kotlinx.coroutines.core)
+
+    testImplementation(project(":test-core"))
 
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotest)
