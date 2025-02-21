@@ -17,6 +17,7 @@
  *
  */
 
+import org.eclipse.kuksa.version.SemanticVersion
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_NAME
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_PATH_KEY
 import java.nio.file.FileVisitResult
@@ -32,6 +33,9 @@ import kotlin.io.path.visitFileTree
 
 val versionDefaultPath = "$rootDir/$VERSION_FILE_DEFAULT_NAME"
 rootProject.ext[VERSION_FILE_DEFAULT_PATH_KEY] = versionDefaultPath
+val semanticVersion = SemanticVersion(versionDefaultPath)
+version = semanticVersion.versionName
+group = "org.eclipse.kuksa"
 
 plugins {
     base
