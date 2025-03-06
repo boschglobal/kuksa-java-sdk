@@ -29,9 +29,9 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
+import org.eclipse.kuksa.connectivity.databroker.provider.DataBrokerConnectorProvider
 import org.eclipse.kuksa.connectivity.databroker.v1.extensions.updateRandomFloatValue
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
-import org.eclipse.kuksa.connectivity.databroker.v1.provider.DataBrokerConnectorProvider
 import org.eclipse.kuksa.mocking.FriendlyVssPathListener
 import org.eclipse.kuksa.proto.v1.KuksaValV1
 import org.eclipse.kuksa.proto.v1.Types
@@ -62,7 +62,7 @@ class DataBrokerTransporterTest : BehaviorSpec({
         connector.connect()
 
         and("An Instance of DataBrokerTransporter") {
-            val classUnderTest = DataBrokerTransporter(dataBrokerConnectorProvider.managedChannel)
+            val classUnderTest = DataBrokerTransporterV1(dataBrokerConnectorProvider.managedChannel)
 
             and("Some VSS-related data") {
                 val vssPath = "Vehicle.ADAS.CruiseControl.SpeedSet"
@@ -160,7 +160,7 @@ class DataBrokerTransporterTest : BehaviorSpec({
 
         `when`("Trying to instantiate the DataBrokerTransporter") {
             val result = kotlin.runCatching {
-                DataBrokerTransporter(inactiveManagedChannel)
+                DataBrokerTransporterV1(inactiveManagedChannel)
             }
 
             then("An IllegalStateException is thrown") {

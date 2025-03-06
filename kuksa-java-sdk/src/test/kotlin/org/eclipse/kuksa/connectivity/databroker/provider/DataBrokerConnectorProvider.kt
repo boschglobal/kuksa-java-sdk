@@ -28,23 +28,23 @@ import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.databroker.DATABROKER_HOST
 import org.eclipse.kuksa.connectivity.databroker.DATABROKER_TIMEOUT_SECONDS
 import org.eclipse.kuksa.connectivity.databroker.DATABROKER_TIMEOUT_UNIT
+import org.eclipse.kuksa.connectivity.databroker.DataBrokerConnector
 import org.eclipse.kuksa.connectivity.databroker.docker.DEFAULT_PORT_INSECURE
 import org.eclipse.kuksa.connectivity.databroker.docker.DEFAULT_PORT_SECURE
-import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectorV2
 import org.eclipse.kuksa.mocking.JwtType
 import org.eclipse.kuksa.model.TimeoutConfig
 import org.eclipse.kuksa.test.TestResourceFile
 import java.io.IOException
 import java.io.InputStream
 
-class DataBrokerConnectorV2Provider {
+class DataBrokerConnectorProvider {
     lateinit var managedChannel: ManagedChannel
 
     fun createInsecure(
         host: String = DATABROKER_HOST,
         port: Int = DEFAULT_PORT_INSECURE,
         jwtFileStream: InputStream? = null,
-    ): DataBrokerConnectorV2 {
+    ): DataBrokerConnector {
         managedChannel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build()
 
         val jsonWebToken = jwtFileStream?.let {
@@ -52,7 +52,7 @@ class DataBrokerConnectorV2Provider {
             JsonWebToken(token)
         }
 
-        return DataBrokerConnectorV2(
+        return DataBrokerConnector(
             managedChannel,
             jsonWebToken,
         ).apply {
@@ -66,7 +66,7 @@ class DataBrokerConnectorV2Provider {
         overrideAuthority: String = "",
         rootCertFileStream: InputStream = TestResourceFile("tls/CA.pem").inputStream(),
         jwtFileStream: InputStream? = JwtType.READ_WRITE_ALL.asInputStream(),
-    ): DataBrokerConnectorV2 {
+    ): DataBrokerConnector {
         val tlsCredentials: ChannelCredentials
         try {
             tlsCredentials = TlsChannelCredentials.newBuilder()
@@ -92,7 +92,7 @@ class DataBrokerConnectorV2Provider {
             JsonWebToken(token)
         }
 
-        return DataBrokerConnectorV2(
+        return DataBrokerConnector(
             managedChannel,
             jsonWebToken,
         ).apply {

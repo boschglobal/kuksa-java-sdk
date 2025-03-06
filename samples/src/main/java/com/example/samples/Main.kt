@@ -22,12 +22,11 @@ package com.example.samples
 import io.grpc.ManagedChannelBuilder
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnector
+import org.eclipse.kuksa.connectivity.databroker.DataBrokerConnector
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
 import org.eclipse.kuksa.connectivity.databroker.v1.request.FetchRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.SubscribeRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.UpdateRequest
-import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectorV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.FetchValueRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.PublishValueRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.SubscribeRequestV2
@@ -58,16 +57,16 @@ private suspend fun useKuksaValV1() {
 
             val dataPoint = Datapoint.newBuilder().setFloat(80.0F).build()
             val updateRequest = UpdateRequest(vssPath, dataPoint)
-            dataBrokerConnection.update(updateRequest)
+            dataBrokerConnection.kuksaValV1.update(updateRequest)
 
             println("Reading Vehicle.Speed from Databroker")
             val fetchRequest = FetchRequest(vssPath)
-            val response = dataBrokerConnection.fetch(fetchRequest)
-            println("GetResponse: " + response)
+            val response = dataBrokerConnection.kuksaValV1.fetch(fetchRequest)
+            println("GetResponse: $response")
 
             println("Observe Vehicle.Speed")
             val subscribeRequest = SubscribeRequest("Vehicle.Speed")
-            dataBrokerConnection.subscribe(
+            dataBrokerConnection.kuksaValV1.subscribe(
                 subscribeRequest,
                 object : VssPathListener {
                     override fun onEntryChanged(entryUpdates: List<KuksaValV1.EntryUpdate>) {
@@ -92,7 +91,7 @@ private suspend fun useKuksaValV2() {
     val managedChannel = ManagedChannelBuilder.forAddress("localhost", 55556)
         .usePlaintext()
         .build()
-    val dataBrokerConnector = DataBrokerConnectorV2(managedChannel)
+    val dataBrokerConnector = DataBrokerConnector(managedChannel)
 
     coroutineScope {
         launch {
@@ -106,17 +105,17 @@ private suspend fun useKuksaValV2() {
             val datapoint = Types.Datapoint.newBuilder().setValue(speedValue).build()
 
             val publishValueRequest = PublishValueRequestV2(signalId, datapoint)
-            dataBrokerConnection.publishValue(publishValueRequest)
+            dataBrokerConnection.kuksaValV2.publishValue(publishValueRequest)
 
             println("Reading Vehicle.Speed from Databroker")
             val fetchValueRequest = FetchValueRequestV2(signalId)
-            val fetchResponse = dataBrokerConnection.fetchValue(fetchValueRequest)
+            val fetchResponse = dataBrokerConnection.kuksaValV2.fetchValue(fetchValueRequest)
             println(fetchResponse)
 
             println("Observe Vehicle.Speed")
             val signalPaths = listOf("Vehicle.Speed")
             val subscribeRequest = SubscribeRequestV2(signalPaths)
-            val responseFlow = dataBrokerConnection.subscribe(subscribeRequest)
+            val responseFlow = dataBrokerConnection.kuksaValV2.subscribe(subscribeRequest)
             responseFlow.collect { response ->
                 val vehicleSpeedValue = response.entriesMap["Vehicle.Speed"]?.value?.float
                 // handle change

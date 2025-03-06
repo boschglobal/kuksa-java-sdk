@@ -19,13 +19,11 @@
 
 package org.eclipse.kuksa.connectivity.databroker.v2
 
-import io.grpc.ConnectivityState
 import io.grpc.ManagedChannel
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.flow.Flow
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
-import org.eclipse.kuksa.connectivity.databroker.DisconnectListener
 import org.eclipse.kuksa.connectivity.databroker.v2.request.ActuateRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.BatchActuateRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.FetchValueRequestV2
@@ -34,10 +32,7 @@ import org.eclipse.kuksa.connectivity.databroker.v2.request.ListMetadataRequestV
 import org.eclipse.kuksa.connectivity.databroker.v2.request.PublishValueRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.SubscribeByIdRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.SubscribeRequestV2
-import org.eclipse.kuksa.extension.TAG
-import org.eclipse.kuksa.pattern.listener.MultiListener
 import org.eclipse.kuksa.proto.v2.KuksaValV2
-import java.util.logging.Logger
 import kotlin.properties.Delegates
 
 /**
@@ -45,37 +40,15 @@ import kotlin.properties.Delegates
  * DataBroker.
  */
 @Suppress("TooManyFunctions") // most methods are simply exposed from transporter layer
-class DataBrokerConnectionV2 internal constructor(
+class KuksaValV2Protocol internal constructor(
     private val managedChannel: ManagedChannel,
     private val dataBrokerTransporter: DataBrokerTransporterV2 = DataBrokerTransporterV2(managedChannel),
 ) {
-    private val logger = Logger.getLogger(TAG)
-
-    /**
-     * Used to register and unregister multiple [DisconnectListener].
-     */
-    val disconnectListeners = MultiListener<DisconnectListener>()
-
     /**
      * A JsonWebToken can be provided to authenticate against the DataBroker.
      */
     var jsonWebToken: JsonWebToken? by Delegates.observable(null) { _, _, newValue ->
         dataBrokerTransporter.jsonWebToken = newValue
-    }
-
-    init {
-        val state = managedChannel.getState(false)
-        managedChannel.notifyWhenStateChanged(state) {
-            val newState = managedChannel.getState(false)
-            logger.finer("DataBrokerConnection state changed: $newState")
-            if (newState != ConnectivityState.SHUTDOWN) {
-                managedChannel.shutdownNow()
-            }
-
-            disconnectListeners.forEach { listener ->
-                listener.onDisconnect()
-            }
-        }
     }
 
     /**
@@ -232,13 +205,5 @@ class DataBrokerConnectionV2 internal constructor(
      */
     suspend fun fetchServerInfo(): KuksaValV2.GetServerInfoResponse {
         return dataBrokerTransporter.fetchServerInfo()
-    }
-
-    /**
-     * Disconnect from the DataBroker.
-     */
-    fun disconnect() {
-        logger.finer("disconnect() called")
-        managedChannel.shutdownNow()
     }
 }

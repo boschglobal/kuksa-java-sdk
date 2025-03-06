@@ -19,14 +19,12 @@
 
 package org.eclipse.kuksa.connectivity.databroker.v1
 
-import io.grpc.ConnectivityState
 import io.grpc.ManagedChannel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
-import org.eclipse.kuksa.connectivity.databroker.DisconnectListener
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssNodeListener
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
 import org.eclipse.kuksa.connectivity.databroker.v1.request.FetchRequest
@@ -40,7 +38,6 @@ import org.eclipse.kuksa.connectivity.databroker.v1.subscription.DataBrokerSubsc
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.extension.datapoint
 import org.eclipse.kuksa.extension.vss.copy
-import org.eclipse.kuksa.pattern.listener.MultiListener
 import org.eclipse.kuksa.proto.v1.KuksaValV1.GetResponse
 import org.eclipse.kuksa.proto.v1.KuksaValV1.SetResponse
 import org.eclipse.kuksa.proto.v1.Types
@@ -56,41 +53,21 @@ import kotlin.properties.Delegates
  * The DataBrokerConnection holds an active connection to the DataBroker. The Connection can be use to interact with the
  * DataBroker.
  */
-class DataBrokerConnection internal constructor(
+class KuksaValV1Protocol internal constructor(
     private val managedChannel: ManagedChannel,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val dataBrokerTransporter: DataBrokerTransporter = DataBrokerTransporter(
+    private val dataBrokerTransporterV1: DataBrokerTransporterV1 = DataBrokerTransporterV1(
         managedChannel,
     ),
-    private val dataBrokerSubscriber: DataBrokerSubscriber = DataBrokerSubscriber(dataBrokerTransporter),
+    private val dataBrokerSubscriber: DataBrokerSubscriber = DataBrokerSubscriber(dataBrokerTransporterV1),
 ) {
     private val logger = Logger.getLogger(TAG)
-
-    /**
-     * Used to register and unregister multiple [DisconnectListener].
-     */
-    val disconnectListeners = MultiListener<DisconnectListener>()
 
     /**
      * A JsonWebToken can be provided to authenticate against the DataBroker.
      */
     var jsonWebToken: JsonWebToken? by Delegates.observable(null) { _, _, newValue ->
-        dataBrokerTransporter.jsonWebToken = newValue
-    }
-
-    init {
-        val state = managedChannel.getState(false)
-        managedChannel.notifyWhenStateChanged(state) {
-            val newState = managedChannel.getState(false)
-            logger.finer("DataBrokerConnection state changed: $newState")
-            if (newState != ConnectivityState.SHUTDOWN) {
-                managedChannel.shutdownNow()
-            }
-
-            disconnectListeners.forEach { listener ->
-                listener.onDisconnect()
-            }
-        }
+        dataBrokerTransporterV1.jsonWebToken = newValue
     }
 
     /**
@@ -165,7 +142,7 @@ class DataBrokerConnection internal constructor(
      */
     suspend fun fetch(request: FetchRequest): GetResponse {
         logger.finer("Fetching via request: $request")
-        return dataBrokerTransporter.fetch(request.vssPath, request.fields.toSet())
+        return dataBrokerTransporterV1.fetch(request.vssPath, request.fields.toSet())
     }
 
     /**
@@ -214,7 +191,7 @@ class DataBrokerConnection internal constructor(
      */
     suspend fun update(request: UpdateRequest): SetResponse {
         logger.finer("Update with request: $request")
-        return dataBrokerTransporter.update(request.vssPath, request.dataPoint, request.fields.toSet())
+        return dataBrokerTransporterV1.update(request.vssPath, request.dataPoint, request.fields.toSet())
     }
 
     /**
@@ -240,13 +217,5 @@ class DataBrokerConnection internal constructor(
         }
 
         return VssNodeUpdateResponse(responses)
-    }
-
-    /**
-     * Disconnect from the DataBroker.
-     */
-    fun disconnect() {
-        logger.finer("disconnect() called")
-        managedChannel.shutdownNow()
     }
 }

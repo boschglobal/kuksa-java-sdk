@@ -30,12 +30,12 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
-import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerTransporter
+import org.eclipse.kuksa.connectivity.databroker.provider.DataBrokerConnectorProvider
+import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerTransporterV1
 import org.eclipse.kuksa.connectivity.databroker.v1.extensions.toggleBoolean
 import org.eclipse.kuksa.connectivity.databroker.v1.extensions.updateRandomFloatValue
 import org.eclipse.kuksa.connectivity.databroker.v1.extensions.updateRandomUint32Value
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
-import org.eclipse.kuksa.connectivity.databroker.v1.provider.DataBrokerConnectorProvider
 import org.eclipse.kuksa.mocking.FriendlyVssNodeListener
 import org.eclipse.kuksa.mocking.FriendlyVssPathListener
 import org.eclipse.kuksa.pattern.listener.MultiListener
@@ -69,9 +69,9 @@ class DataBrokerSubscriberTest : BehaviorSpec({
         connector.connect()
 
         and("An Instance of DataBrokerSubscriber") {
-            val databrokerTransporter =
-                DataBrokerTransporter(dataBrokerConnectorProvider.managedChannel)
-            val classUnderTest = DataBrokerSubscriber(databrokerTransporter)
+            val databrokerTransporterV1 =
+                DataBrokerTransporterV1(dataBrokerConnectorProvider.managedChannel)
+            val classUnderTest = DataBrokerSubscriber(databrokerTransporterV1)
 
             `when`("Subscribing to VSS_PATH (Branch) 'Vehicle.ADAS.ABS'") {
                 val vssPath = "Vehicle.ADAS.ABS"
@@ -97,9 +97,9 @@ class DataBrokerSubscriberTest : BehaviorSpec({
                     vssPathListener.reset()
 
                     val vssPathIsError = "Vehicle.ADAS.ABS.IsError"
-                    val newValueIsError = databrokerTransporter.toggleBoolean(vssPathIsError)
+                    val newValueIsError = databrokerTransporterV1.toggleBoolean(vssPathIsError)
                     val vssPathIsEngaged = "Vehicle.ADAS.ABS.IsEngaged"
-                    val newValueIsEngaged = databrokerTransporter.toggleBoolean(vssPathIsEngaged)
+                    val newValueIsEngaged = databrokerTransporterV1.toggleBoolean(vssPathIsEngaged)
 
                     then("The VssPathListener should be notified about it") {
                         eventually(eventuallyConfiguration) {
@@ -128,7 +128,7 @@ class DataBrokerSubscriberTest : BehaviorSpec({
                 classUnderTest.subscribe(vssPath, fieldValue, vssPathListener)
 
                 and("When the FIELD_VALUE of Vehicle.Speed is updated") {
-                    val updateRandomFloatValue = databrokerTransporter.updateRandomFloatValue(vssPath)
+                    val updateRandomFloatValue = databrokerTransporterV1.updateRandomFloatValue(vssPath)
 
                     then("The VssPathListener is notified about the change") {
                         eventually(eventuallyConfiguration) {
@@ -149,8 +149,8 @@ class DataBrokerSubscriberTest : BehaviorSpec({
                     classUnderTest.subscribe(otherVssPath, fieldValue, vssPathListener)
 
                     and("Both values are updated") {
-                        val updatedValueVssPath = databrokerTransporter.updateRandomFloatValue(vssPath)
-                        val updatedValueOtherVssPath = databrokerTransporter.updateRandomFloatValue(otherVssPath)
+                        val updatedValueVssPath = databrokerTransporterV1.updateRandomFloatValue(vssPath)
+                        val updatedValueOtherVssPath = databrokerTransporterV1.updateRandomFloatValue(otherVssPath)
 
                         then("The Observer is notified about both changes") {
                             eventually(eventuallyConfiguration) {
@@ -183,7 +183,7 @@ class DataBrokerSubscriberTest : BehaviorSpec({
                     }
 
                     and("When the FIELD_VALUE of Vehicle.Speed is updated") {
-                        val randomFloatValue = databrokerTransporter.updateRandomFloatValue(vssPath)
+                        val randomFloatValue = databrokerTransporterV1.updateRandomFloatValue(vssPath)
 
                         then("Each VssPathListener is only notified once") {
                             friendlyVssPathListeners.forEach { listener ->
@@ -205,7 +205,7 @@ class DataBrokerSubscriberTest : BehaviorSpec({
                     classUnderTest.unsubscribe(vssPath, fieldValue, vssPathListener)
 
                     and("When the FIELD_VALUE of Vehicle.Speed is updated") {
-                        databrokerTransporter.updateRandomFloatValue(vssPath)
+                        databrokerTransporterV1.updateRandomFloatValue(vssPath)
 
                         then("The VssPathListener is not notified") {
                             continually(continuallyConfiguration) {
@@ -224,7 +224,7 @@ class DataBrokerSubscriberTest : BehaviorSpec({
                 classUnderTest.subscribe(vssPath, fieldValue, vssPathListener)
 
                 and("When the FIELD_VALUE of Vehicle.Speed is updated") {
-                    val randomFloatValue = databrokerTransporter.updateRandomFloatValue(vssPath)
+                    val randomFloatValue = databrokerTransporterV1.updateRandomFloatValue(vssPath)
 
                     then("The VssPathListener is only notified once") {
                         eventually(eventuallyConfiguration) {
@@ -252,7 +252,7 @@ class DataBrokerSubscriberTest : BehaviorSpec({
 
                 and("The value of Vehicle.Driver.HeartRate changes") {
                     val randomIntValue =
-                        databrokerTransporter.updateRandomUint32Value(vssHeartRate.vssPath)
+                        databrokerTransporterV1.updateRandomUint32Value(vssHeartRate.vssPath)
 
                     then("The Observer should be triggered") {
                         eventually(eventuallyConfiguration) {
@@ -281,7 +281,7 @@ class DataBrokerSubscriberTest : BehaviorSpec({
 
                 and("The value of Vehicle.Driver.HeartRate changes") {
                     val randomIntValue =
-                        databrokerTransporter.updateRandomUint32Value(vssHeartRate.vssPath)
+                        databrokerTransporterV1.updateRandomUint32Value(vssHeartRate.vssPath)
 
                     then("The Observer is only notified once") {
                         eventually(eventuallyConfiguration) {
@@ -299,11 +299,11 @@ class DataBrokerSubscriberTest : BehaviorSpec({
 
     given("An Instance of DataBrokerSubscriber with a mocked DataBrokerTransporter") {
         val subscriptionMock = mockk<DataBrokerSubscription>(relaxed = true)
-        val dataBrokerTransporterMock = mockk<DataBrokerTransporter>(relaxed = true)
+        val dataBrokerTransporterV1Mock = mockk<DataBrokerTransporterV1>(relaxed = true)
         val multiListener = MultiListener<VssPathListener>()
-        every { dataBrokerTransporterMock.subscribe(any(), any()) } returns subscriptionMock
+        every { dataBrokerTransporterV1Mock.subscribe(any(), any()) } returns subscriptionMock
         every { subscriptionMock.listeners } returns multiListener
-        val classUnderTest = DataBrokerSubscriber(dataBrokerTransporterMock)
+        val classUnderTest = DataBrokerSubscriber(dataBrokerTransporterV1Mock)
 
         `when`("Subscribing for the first time to a vssPath and field") {
             val vssPath = "Vehicle.Speed"
@@ -314,19 +314,19 @@ class DataBrokerSubscriberTest : BehaviorSpec({
 
             then("A new Subscription is created and the VssPathListener is added to the list of Listeners") {
                 verify {
-                    dataBrokerTransporterMock.subscribe(vssPath, field)
+                    dataBrokerTransporterV1Mock.subscribe(vssPath, field)
                 }
                 multiListener.count() shouldBe 1
             }
 
             `when`("Another VssPathListener subscribes to the same vssPath and field") {
-                clearMocks(dataBrokerTransporterMock)
+                clearMocks(dataBrokerTransporterV1Mock)
 
                 classUnderTest.subscribe(vssPath, field, vssPathListenerMock2)
 
                 then("No new Subscription is created and the VssPathListener is added to the list of Listeners") {
                     verify(exactly = 0) {
-                        dataBrokerTransporterMock.subscribe(vssPath, field)
+                        dataBrokerTransporterV1Mock.subscribe(vssPath, field)
                     }
                     multiListener.count() shouldBe 2
                 }

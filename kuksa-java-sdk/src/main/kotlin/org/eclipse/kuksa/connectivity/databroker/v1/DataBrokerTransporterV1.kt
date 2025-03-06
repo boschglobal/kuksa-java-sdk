@@ -30,8 +30,7 @@ import org.eclipse.kuksa.connectivity.databroker.v1.extension.withAuthentication
 import org.eclipse.kuksa.connectivity.databroker.v1.subscription.DataBrokerSubscription
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.extension.applyDatapoint
-import org.eclipse.kuksa.proto.v1.KuksaValV1
-import org.eclipse.kuksa.proto.v1.KuksaValV1.SubscribeResponse
+import org.eclipse.kuksa.proto.v1.KuksaValV1.*
 import org.eclipse.kuksa.proto.v1.Types
 import org.eclipse.kuksa.proto.v1.Types.Field
 import org.eclipse.kuksa.proto.v1.VALGrpc
@@ -46,7 +45,7 @@ import java.util.logging.Logger
  *
  * @throws IllegalStateException in case the state of the [managedChannel] is not [ConnectivityState.READY]
  */
-internal class DataBrokerTransporter(
+internal class DataBrokerTransporterV1(
     private val managedChannel: ManagedChannel,
 ) {
 
@@ -75,12 +74,12 @@ internal class DataBrokerTransporter(
     suspend fun fetch(
         vssPath: String,
         fields: Collection<Field>,
-    ): KuksaValV1.GetResponse {
-        val entryRequest = KuksaValV1.EntryRequest.newBuilder()
+    ): GetResponse {
+        val entryRequest = EntryRequest.newBuilder()
             .setPath(vssPath)
             .addAllFields(fields.toSet())
             .build()
-        val request = KuksaValV1.GetRequest.newBuilder()
+        val request = GetRequest.newBuilder()
             .addEntries(entryRequest)
             .build()
 
@@ -103,20 +102,20 @@ internal class DataBrokerTransporter(
         vssPath: String,
         updatedDatapoint: Types.Datapoint,
         fields: Collection<Field>,
-    ): KuksaValV1.SetResponse {
+    ): SetResponse {
         val entryUpdates = fields.map { field ->
             val dataEntry = Types.DataEntry.newBuilder()
                 .setPath(vssPath)
                 .applyDatapoint(updatedDatapoint, field)
                 .build()
 
-            KuksaValV1.EntryUpdate.newBuilder()
+            EntryUpdate.newBuilder()
                 .setEntry(dataEntry)
                 .addFields(field)
                 .build()
         }
 
-        val request = KuksaValV1.SetRequest.newBuilder()
+        val request = SetRequest.newBuilder()
             .addAllUpdates(entryUpdates)
             .build()
 
@@ -140,12 +139,12 @@ internal class DataBrokerTransporter(
         vssPath: String,
         field: Field,
     ): DataBrokerSubscription {
-        val subscribeEntry = KuksaValV1.SubscribeEntry.newBuilder()
+        val subscribeEntry = SubscribeEntry.newBuilder()
             .setPath(vssPath)
             .addFields(field)
             .build()
 
-        val request = KuksaValV1.SubscribeRequest.newBuilder()
+        val request = SubscribeRequest.newBuilder()
             .addEntries(subscribeEntry)
             .build()
 

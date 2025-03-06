@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
+ *
  */
 
 package org.eclipse.kuksa.connectivity.databroker.v1.subscription
 
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
-import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerTransporter
+import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerTransporterV1
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssNodeListener
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
 import org.eclipse.kuksa.extension.TAG
@@ -36,7 +37,7 @@ import java.util.logging.Logger
  * [VssPathListener] of a [DataBrokerSubscription] unsubscribes the [DataBrokerSubscription] will be automatically
  * canceled and removed from the active [DataBrokerSubscription]s.
  */
-internal class DataBrokerSubscriber(private val dataBrokerTransporter: DataBrokerTransporter) {
+internal class DataBrokerSubscriber(private val dataBrokerTransporterV1: DataBrokerTransporterV1) {
     private val logger = Logger.getLogger(TAG)
 
     private val subscriptions =
@@ -51,7 +52,7 @@ internal class DataBrokerSubscriber(private val dataBrokerTransporter: DataBroke
         val identifier = createIdentifier(vssPath, field)
         var subscription = subscriptions[identifier]
         if (subscription == null) {
-            subscription = dataBrokerTransporter.subscribe(vssPath, field)
+            subscription = dataBrokerTransporterV1.subscribe(vssPath, field)
             subscriptions[identifier] = subscription
             logger.finest("Created $subscription")
         }
