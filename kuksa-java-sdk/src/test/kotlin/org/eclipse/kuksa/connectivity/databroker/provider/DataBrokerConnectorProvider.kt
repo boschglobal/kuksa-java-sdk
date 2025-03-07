@@ -29,8 +29,6 @@ import org.eclipse.kuksa.connectivity.databroker.DATABROKER_HOST
 import org.eclipse.kuksa.connectivity.databroker.DATABROKER_TIMEOUT_SECONDS
 import org.eclipse.kuksa.connectivity.databroker.DATABROKER_TIMEOUT_UNIT
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerConnector
-import org.eclipse.kuksa.connectivity.databroker.docker.DEFAULT_PORT_INSECURE
-import org.eclipse.kuksa.connectivity.databroker.docker.DEFAULT_PORT_SECURE
 import org.eclipse.kuksa.mocking.JwtType
 import org.eclipse.kuksa.model.TimeoutConfig
 import org.eclipse.kuksa.test.TestResourceFile
@@ -42,7 +40,7 @@ class DataBrokerConnectorProvider {
 
     fun createInsecure(
         host: String = DATABROKER_HOST,
-        port: Int = DEFAULT_PORT_INSECURE,
+        port: Int,
         jwtFileStream: InputStream? = null,
     ): DataBrokerConnector {
         managedChannel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build()
@@ -62,7 +60,7 @@ class DataBrokerConnectorProvider {
 
     fun createSecure(
         host: String = DATABROKER_HOST,
-        port: Int = DEFAULT_PORT_SECURE,
+        port: Int,
         overrideAuthority: String = "",
         rootCertFileStream: InputStream = TestResourceFile("tls/CA.pem").inputStream(),
         jwtFileStream: InputStream? = JwtType.READ_WRITE_ALL.asInputStream(),

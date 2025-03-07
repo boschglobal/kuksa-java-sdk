@@ -58,7 +58,9 @@ class DataBrokerTransporterTest : BehaviorSpec({
 
     given("An active Connection to the DataBroker") {
         val dataBrokerConnectorProvider = DataBrokerConnectorProvider()
-        val connector = dataBrokerConnectorProvider.createInsecure()
+        val connector = dataBrokerConnectorProvider.createInsecure(
+            port = databrokerContainer!!.port,
+        )
         connector.connect()
 
         and("An Instance of DataBrokerTransporter") {

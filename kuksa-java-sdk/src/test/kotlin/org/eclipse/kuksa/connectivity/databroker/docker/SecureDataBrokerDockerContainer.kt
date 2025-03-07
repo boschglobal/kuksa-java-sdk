@@ -26,13 +26,10 @@ import com.github.dockerjava.api.model.HostConfig
 import com.github.dockerjava.api.model.Volume
 import org.eclipse.kuksa.test.TestResourceFile
 
-const val DEFAULT_PORT_SECURE = 55580
-
 // tls enabled, authentication enabled
 class SecureDataBrokerDockerContainer(
-    containerName: String = "databroker_secure_unit_test",
-    port: Int = DEFAULT_PORT_SECURE,
-) : DataBrokerDockerContainer(containerName, port) {
+    containerName: String = "databroker_test_secure",
+) : DataBrokerDockerContainer(containerName) {
 
     private val authenticationFolder = TestResourceFile("authentication").toString()
     private val authenticationMount = "/resources/authentication"
@@ -48,8 +45,8 @@ class SecureDataBrokerDockerContainer(
 
     @Suppress("ArgumentListWrapping", "ktlint:standard:argument-list-wrapping") // better key-value pair readability
     override fun createContainer(tag: String): CreateContainerResponse {
-        val withCmd = dockerClient.createContainerCmd("$repository:$tag")
-            .withName(containerName)
+        return dockerClient.createContainerCmd("$repository:$tag")
+            .withName("${containerName}_${System.nanoTime()}")
             .withHostConfig(hostConfig)
             .withCmd(
                 "--port", "$port",
@@ -57,7 +54,6 @@ class SecureDataBrokerDockerContainer(
                 "--tls-private-key", "$tlsMount/Server.key",
                 "--jwt-public-key", "$authenticationMount/jwt.key.pub",
             )
-        return withCmd
             .exec()
     }
 }
