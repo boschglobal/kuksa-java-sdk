@@ -25,7 +25,7 @@ runs:
       shell: bash
 
     - name: Upload Test Reports
-      if: ${{ inputs.upload-test-reports == 'true' }}
+      if: ${{ inputs['upload-test-reports'] == 'true' }}
       uses: actions/upload-artifact@v4
       with:
         name: test-reports
@@ -34,12 +34,12 @@ runs:
         retention-days: 14
 
     - name: Create Code Coverage Reports
-      if: ${{ inputs.upload-code-coverage-reports == 'true' }}
+      if: ${{ inputs['upload-code-coverage-reports'] == 'true' }}
       run: ./gradlew jacocoRootReport
       shell: bash
 
     - name: Upload Code Coverage Report
-      if: ${{ inputs.upload-code-coverage-reports == 'true' }}
+      if: ${{ inputs['upload-code-coverage-reports'] == 'true' }}
       uses: actions/upload-artifact@v4
       with:
         name: code-coverage
