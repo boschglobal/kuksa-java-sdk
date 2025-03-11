@@ -26,7 +26,6 @@ import kotlinx.coroutines.Dispatchers
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerTransporterV1
 import org.eclipse.kuksa.connectivity.databroker.v1.KuksaValV1Protocol
-import org.eclipse.kuksa.connectivity.databroker.v1.subscription.DataBrokerSubscriber
 import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerTransporterV2
 import org.eclipse.kuksa.connectivity.databroker.v2.KuksaValV2Protocol
 import org.eclipse.kuksa.extension.TAG
@@ -47,7 +46,6 @@ class DataBrokerConnection internal constructor(
     private val dataBrokerTransporterV2: DataBrokerTransporterV2 = DataBrokerTransporterV2(
         managedChannel,
     ),
-    dataBrokerSubscriber: DataBrokerSubscriber = DataBrokerSubscriber(dataBrokerTransporterV1),
 ) {
     private val logger = Logger.getLogger(TAG)
 
@@ -64,7 +62,7 @@ class DataBrokerConnection internal constructor(
         dataBrokerTransporterV2.jsonWebToken = newValue
     }
 
-    val kuksaValV1 = KuksaValV1Protocol(managedChannel, dispatcher, dataBrokerTransporterV1, dataBrokerSubscriber)
+    val kuksaValV1 = KuksaValV1Protocol(managedChannel, dispatcher, dataBrokerTransporterV1)
     val kuksaValV2 = KuksaValV2Protocol(managedChannel, dataBrokerTransporterV2)
 
     init {

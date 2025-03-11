@@ -120,10 +120,12 @@ class DataBrokerTransporterTest : BehaviorSpec({
                 }
 
                 `when`("Subscribing to the vssPath using FIELD_VALUE") {
-                    val subscription = classUnderTest.subscribe(vssPath, Types.Field.FIELD_VALUE)
-
                     val vssPathListener = mockk<VssPathListener>(relaxed = true)
-                    subscription.listeners.register(vssPathListener)
+                    classUnderTest.subscribe(
+                        vssPath,
+                        listOf(Types.Field.FIELD_VALUE),
+                        vssPathListener,
+                    )
 
                     and("The value of the vssPath is updated") {
                         classUnderTest.updateRandomFloatValue(vssPath)
@@ -137,13 +139,12 @@ class DataBrokerTransporterTest : BehaviorSpec({
                 }
 
                 `when`("Subscribing to an invalid vssPath") {
-                    val subscription = classUnderTest.subscribe(
-                        "Vehicle.Some.Invalid.Path",
-                        Types.Field.FIELD_VALUE,
-                    )
-
                     val vssPathListener = FriendlyVssPathListener()
-                    subscription.listeners.register(vssPathListener)
+                    classUnderTest.subscribe(
+                        "Vehicle.Some.Invalid.Path",
+                        listOf(Types.Field.FIELD_VALUE),
+                        vssPathListener,
+                    )
 
                     then("An Error should be triggered") {
                         eventually(eventuallyConfiguration) {

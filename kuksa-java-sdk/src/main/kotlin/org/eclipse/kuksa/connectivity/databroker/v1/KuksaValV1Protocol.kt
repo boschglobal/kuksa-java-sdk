@@ -34,7 +34,7 @@ import org.eclipse.kuksa.connectivity.databroker.v1.request.VssNodeFetchRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.VssNodeSubscribeRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.VssNodeUpdateRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.response.VssNodeUpdateResponse
-import org.eclipse.kuksa.connectivity.databroker.v1.subscription.DataBrokerSubscriber
+import org.eclipse.kuksa.connectivity.databroker.v1.subscription.VssNodePathListener
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.extension.datapoint
 import org.eclipse.kuksa.extension.vss.copy
@@ -59,7 +59,6 @@ class KuksaValV1Protocol internal constructor(
     private val dataBrokerTransporterV1: DataBrokerTransporterV1 = DataBrokerTransporterV1(
         managedChannel,
     ),
-    private val dataBrokerSubscriber: DataBrokerSubscriber = DataBrokerSubscriber(dataBrokerTransporterV1),
 ) {
     private val logger = Logger.getLogger(TAG)
 
@@ -80,22 +79,9 @@ class KuksaValV1Protocol internal constructor(
         listener: VssPathListener,
     ) {
         val vssPath = request.vssPath
-        request.fields.forEach { field ->
-            dataBrokerSubscriber.subscribe(vssPath, field, listener)
-        }
-    }
+        val fields = request.fields.toList()
 
-    /**
-     * Unsubscribes the [listener] from updates of the specified [request].
-     */
-    fun unsubscribe(
-        request: SubscribeRequest,
-        listener: VssPathListener,
-    ) {
-        val vssPath = request.vssPath
-        request.fields.forEach { field ->
-            dataBrokerSubscriber.unsubscribe(vssPath, field, listener)
-        }
+        dataBrokerTransporterV1.subscribe(vssPath, fields, listener)
     }
 
     /**
@@ -112,26 +98,12 @@ class KuksaValV1Protocol internal constructor(
         request: VssNodeSubscribeRequest<T>,
         listener: VssNodeListener<T>,
     ) {
-        val fields = request.fields
+        val vssPath = request.vssPath
         val vssNode = request.vssNode
-        fields.forEach { field ->
-            dataBrokerSubscriber.subscribe(vssNode, field, listener)
-        }
-    }
+        val fields = request.fields.toList()
 
-    /**
-     * Unsubscribes the [listener] from updates of the specified [VssNodeSubscribeRequest.fields] and
-     * [VssNodeSubscribeRequest.vssNode].
-     */
-    fun <T : VssNode> unsubscribe(
-        request: VssNodeSubscribeRequest<T>,
-        listener: VssNodeListener<T>,
-    ) {
-        val fields = request.fields
-        val vssNode = request.vssNode
-        fields.forEach { field ->
-            dataBrokerSubscriber.unsubscribe(vssNode, field, listener)
-        }
+        val vssNodePathListener = VssNodePathListener(vssNode, listener)
+        dataBrokerTransporterV1.subscribe(vssPath, fields, vssNodePathListener)
     }
 
     /**
