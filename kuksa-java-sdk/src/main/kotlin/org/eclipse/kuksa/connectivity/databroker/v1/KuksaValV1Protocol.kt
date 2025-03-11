@@ -20,8 +20,10 @@
 package org.eclipse.kuksa.connectivity.databroker.v1
 
 import io.grpc.ManagedChannel
+import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
@@ -38,6 +40,7 @@ import org.eclipse.kuksa.connectivity.databroker.v1.subscription.VssNodePathList
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.extension.datapoint
 import org.eclipse.kuksa.extension.vss.copy
+import org.eclipse.kuksa.proto.v1.KuksaValV1
 import org.eclipse.kuksa.proto.v1.KuksaValV1.GetResponse
 import org.eclipse.kuksa.proto.v1.KuksaValV1.SetResponse
 import org.eclipse.kuksa.proto.v1.Types
@@ -48,12 +51,6 @@ import org.eclipse.kuksa.vsscore.model.heritage
 import org.eclipse.kuksa.vsscore.model.vssSignals
 import java.util.logging.Logger
 import kotlin.properties.Delegates
-import kotlinx.coroutines.flow.Flow
-import io.grpc.StatusException
-import org.eclipse.kuksa.connectivity.databroker.v2.extension.withAuthenticationInterceptor
-import org.eclipse.kuksa.proto.v1.KuksaValV1
-import org.eclipse.kuksa.proto.v2.KuksaValV2
-import org.eclipse.kuksa.proto.v2.subscribeRequest
 
 /**
  * The DataBrokerConnection holds an active connection to the DataBroker. The Connection can be use to interact with the
@@ -184,6 +181,18 @@ class KuksaValV1Protocol internal constructor(
     suspend fun update(request: UpdateRequest): SetResponse {
         logger.finer("Update with request: $request")
         return dataBrokerTransporterV1.update(request.vssPath, request.dataPoint, request.fields.toSet())
+    }
+
+    /**
+     * Allows the provider to continuously send updates to the DataBroker.
+     * @param receiverStream the receiverStream which will be notified about the responses.
+     *
+     * @return the senderStream, which can be used to emit new requests.
+     */
+    fun streamedUpdate(
+        receiverStream: StreamObserver<KuksaValV1.StreamedUpdateResponse>,
+    ): StreamObserver<KuksaValV1.StreamedUpdateRequest> {
+        return dataBrokerTransporterV1.streamedUpdate(receiverStream)
     }
 
     /**

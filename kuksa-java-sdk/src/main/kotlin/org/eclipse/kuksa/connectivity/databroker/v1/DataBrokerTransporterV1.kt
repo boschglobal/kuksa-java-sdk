@@ -31,6 +31,7 @@ import org.eclipse.kuksa.connectivity.databroker.v1.extension.withAuthentication
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.extension.applyDatapoint
+import org.eclipse.kuksa.proto.v1.KuksaValV1
 import org.eclipse.kuksa.proto.v1.KuksaValV1.EntryRequest
 import org.eclipse.kuksa.proto.v1.KuksaValV1.EntryUpdate
 import org.eclipse.kuksa.proto.v1.KuksaValV1.GetRequest
@@ -138,6 +139,20 @@ internal class DataBrokerTransporterV1(
     }
 
     /**
+     * Allows the provider to continuously send updates to the DataBroker.
+     * @param receiverStream the receiverStream which will be notified about the responses.
+     *
+     * @return the senderStream, which can be used to emit new requests.
+     */
+    fun streamedUpdate(
+        receiverStream: StreamObserver<KuksaValV1.StreamedUpdateResponse>,
+    ): StreamObserver<KuksaValV1.StreamedUpdateRequest> {
+        return VALGrpc.newStub(managedChannel)
+            .withAuthenticationInterceptor(jsonWebToken)
+            .streamedUpdate(receiverStream)
+    }
+
+    /**
      * Sends a request to the DataBroker to subscribe to updates of the specified [vssPath] and [fields].
      * Returns a [Context.CancellableContext] which can be used to cancel the subscription.
      *
@@ -187,6 +202,12 @@ internal class DataBrokerTransporterV1(
         return cancellableContext
     }
 
+    /**
+     * Subscribes to the specified [vssPath] using the specified [fields] and returns a flow with provides the
+     * corresponding updates.
+     *
+     * Throws a [DataBrokerException] in case the connection to the DataBroker is no longer active
+     */
     fun subscribe(
         vssPath: String,
         fields: List<Field>,
