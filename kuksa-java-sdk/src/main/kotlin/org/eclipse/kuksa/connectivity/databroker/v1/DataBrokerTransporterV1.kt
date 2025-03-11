@@ -24,13 +24,22 @@ import io.grpc.Context
 import io.grpc.ManagedChannel
 import io.grpc.StatusException
 import io.grpc.stub.StreamObserver
+import kotlinx.coroutines.flow.Flow
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
 import org.eclipse.kuksa.connectivity.databroker.v1.extension.withAuthenticationInterceptor
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.extension.applyDatapoint
-import org.eclipse.kuksa.proto.v1.KuksaValV1.*
+import org.eclipse.kuksa.proto.v1.KuksaValV1.EntryRequest
+import org.eclipse.kuksa.proto.v1.KuksaValV1.EntryUpdate
+import org.eclipse.kuksa.proto.v1.KuksaValV1.GetRequest
+import org.eclipse.kuksa.proto.v1.KuksaValV1.GetResponse
+import org.eclipse.kuksa.proto.v1.KuksaValV1.SetRequest
+import org.eclipse.kuksa.proto.v1.KuksaValV1.SetResponse
+import org.eclipse.kuksa.proto.v1.KuksaValV1.SubscribeEntry
+import org.eclipse.kuksa.proto.v1.KuksaValV1.SubscribeRequest
+import org.eclipse.kuksa.proto.v1.KuksaValV1.SubscribeResponse
 import org.eclipse.kuksa.proto.v1.Types
 import org.eclipse.kuksa.proto.v1.Types.Field
 import org.eclipse.kuksa.proto.v1.VALGrpc
@@ -176,5 +185,27 @@ internal class DataBrokerTransporterV1(
         }
 
         return cancellableContext
+    }
+
+    fun subscribe(
+        vssPath: String,
+        fields: List<Field>,
+    ): Flow<SubscribeResponse> {
+        val subscribeEntry = SubscribeEntry.newBuilder()
+            .setPath(vssPath)
+            .addAllFields(fields)
+            .build()
+
+        val request = SubscribeRequest.newBuilder()
+            .addEntries(subscribeEntry)
+            .build()
+
+        return try {
+            coroutineStub
+                .withAuthenticationInterceptor(jsonWebToken)
+                .subscribe(request)
+        } catch (e: StatusException) {
+            throw DataBrokerException(e.message, e)
+        }
     }
 }

@@ -48,6 +48,12 @@ import org.eclipse.kuksa.vsscore.model.heritage
 import org.eclipse.kuksa.vsscore.model.vssSignals
 import java.util.logging.Logger
 import kotlin.properties.Delegates
+import kotlinx.coroutines.flow.Flow
+import io.grpc.StatusException
+import org.eclipse.kuksa.connectivity.databroker.v2.extension.withAuthenticationInterceptor
+import org.eclipse.kuksa.proto.v1.KuksaValV1
+import org.eclipse.kuksa.proto.v2.KuksaValV2
+import org.eclipse.kuksa.proto.v2.subscribeRequest
 
 /**
  * The DataBrokerConnection holds an active connection to the DataBroker. The Connection can be use to interact with the
@@ -82,6 +88,20 @@ class KuksaValV1Protocol internal constructor(
         val fields = request.fields.toList()
 
         dataBrokerTransporterV1.subscribe(vssPath, fields, listener)
+    }
+
+    /**
+     * Subscribes to the specified [request] and returns a flow with provides the corresponding updates.
+     *
+     * Throws a [DataBrokerException] in case the connection to the DataBroker is no longer active
+     */
+    fun subscribe(
+        request: SubscribeRequest,
+    ): Flow<KuksaValV1.SubscribeResponse> {
+        val vssPath = request.vssPath
+        val fields = request.fields.toList()
+
+        return dataBrokerTransporterV1.subscribe(vssPath, fields)
     }
 
     /**
