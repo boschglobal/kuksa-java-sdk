@@ -111,7 +111,10 @@ class KuksaValV2Protocol internal constructor(
     fun subscribeById(
         request: SubscribeByIdRequestV2,
     ): Flow<KuksaValV2.SubscribeByIdResponse> {
-        return dataBrokerTransporterV2.subscribeById(request.signalIds)
+        val signalIds = request.signalIds
+        val bufferSize = request.bufferSize
+
+        return dataBrokerTransporterV2.subscribeById(signalIds, bufferSize)
     }
 
     /**
@@ -138,7 +141,10 @@ class KuksaValV2Protocol internal constructor(
     fun subscribe(
         request: SubscribeRequestV2,
     ): Flow<KuksaValV2.SubscribeResponse> {
-        return dataBrokerTransporterV2.subscribe(request.signalPaths)
+        val signalPaths = request.signalPaths
+        val bufferSize = request.bufferSize
+
+        return dataBrokerTransporterV2.subscribe(signalPaths, bufferSize)
     }
 
     /**

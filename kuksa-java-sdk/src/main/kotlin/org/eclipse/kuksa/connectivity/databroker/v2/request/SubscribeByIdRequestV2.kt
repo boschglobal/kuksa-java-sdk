@@ -23,4 +23,4 @@ package org.eclipse.kuksa.connectivity.databroker.v2.request
  * Used for subscribe by id requests with
  * [org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectionV2.subscribeById].
  */
-class SubscribeByIdRequestV2(val signalIds: List<Int>)
+class SubscribeByIdRequestV2(val signalIds: List<Int>, val bufferSize: Int = 0)

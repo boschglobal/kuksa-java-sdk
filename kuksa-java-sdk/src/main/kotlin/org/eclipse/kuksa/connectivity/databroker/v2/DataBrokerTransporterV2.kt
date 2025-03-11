@@ -146,9 +146,11 @@ internal class DataBrokerTransporterV2(
      */
     fun subscribeById(
         signalIds: List<Int>,
+        bufferSize: Int = 0,
     ): Flow<KuksaValV2.SubscribeByIdResponse> {
         val request = subscribeByIdRequest {
             this.signalIds.addAll(signalIds)
+            this.bufferSize = bufferSize
         }
 
         return try {
@@ -183,9 +185,11 @@ internal class DataBrokerTransporterV2(
      */
     fun subscribe(
         signalPaths: List<String>,
+        bufferSize: Int = 0,
     ): Flow<KuksaValV2.SubscribeResponse> {
         val request = subscribeRequest {
             this.signalPaths.addAll(signalPaths)
+            this.bufferSize = bufferSize
         }
 
         return try {

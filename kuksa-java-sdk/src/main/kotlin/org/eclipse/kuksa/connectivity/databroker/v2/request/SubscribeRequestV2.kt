@@ -22,4 +22,4 @@ package org.eclipse.kuksa.connectivity.databroker.v2.request
 /**
  * Used for subscribe requests with [org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectionV2.subscribe].
  */
-class SubscribeRequestV2(val signalPaths: List<String>)
+class SubscribeRequestV2(val signalPaths: List<String>, val bufferSize: Int = 0)
