@@ -62,7 +62,7 @@ class DataBrokerConnection internal constructor(
         dataBrokerTransporterV2.jsonWebToken = newValue
     }
 
-    val kuksaValV1 = KuksaValV1Protocol(managedChannel, dispatcher, dataBrokerTransporterV1)
+    val kuksaValV1 = KuksaValV1Protocol(managedChannel, dataBrokerTransporterV1, dispatcher)
     val kuksaValV2 = KuksaValV2Protocol(managedChannel, dataBrokerTransporterV2)
 
     init {

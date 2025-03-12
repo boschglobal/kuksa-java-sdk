@@ -3,7 +3,7 @@
 
 package grpc {
 
-    ManagedChannelBuilder --> ManagedChannel
+    ManagedChannelBuilder --> ManagedChannel: instanciates
 
     class ManagedChannel
     class ManagedChannelBuilder
@@ -12,24 +12,9 @@ package grpc {
 
 package kuksa {
 
-    package proto {
-        class Field
-        class Datapoint
-        class DataEntry
-        class SetResponse
-        class GetResponse
-        class DataEntryError
-        class EntryUpdate
-    }
-
-    DataBrokerConnector -down-> DataBrokerException
     DataBrokerConnector -down-> DataBrokerConnection
-    DataBrokerConnection -down-> DataBrokerTransporter
-    DataBrokerConnection -down-> DataBrokerSubscriber
-    DataBrokerConnection -down-> VssPathListener
-    DataBrokerConnection -left-> DataBrokerException
-    DataBrokerConnection -up-> MultiListener
-    DataBrokerSubscriber -up-> DataBrokerTransporter
+    DataBrokerConnection -left-> VssPathListener
+    DataBrokerConnection *-right- MultiListener
     MultiListener -right-> DisconnectListener
     TimeoutConfig -left-* DataBrokerConnector
     JsonWebToken -right-* DataBrokerConnector
@@ -43,34 +28,58 @@ package kuksa {
         + timeUnit: TimeUnit
     }
 
-    class DataBrokerTransporter {
-        + jsonWebToken: JsonWebToken
-
-        + fetch(vssPath: String, Collection<Field>): GetResponse
-        + update(vssPath: String, Collection<Field>, Types.Datapoint): SetResponse
-        + subscribe(vssPath: String, Field): Subscription
-    }
-
-    class DataBrokerSubscriber {
-        + subscribe(vssPath: String, Field, VssPathListener)
-        + subscribe<T : VssNode>(T, Field, VssNodeListener<T>)
-        + unsubscribe(vssPath: String, Field, VssPathListener)
-        + unsubscribe<T : VssNode>(T, Field, VssNodeListener<T>)
-    }
-
     class DataBrokerConnection {
-        + disconnectListeners: MultiListener<DisconnectListener>
         + jsonWebToken: JsonWebToken
 
-        + subscribe(SubscribeRequest, VssPathListener)
-        + subscribe<T : VssNode>(VssNodeSubscribeRequest, VssNodeListener<T>)
-        + unsubscribe(SubscribeRequest, VssPathListener)
-        + unsubscribe<T : VssNode>(VssNodeSubscribeRequest<T>, VssNodeListener<T>)
+        + disconnect()
+    }
+
+    class DataBrokerTransporterV1 {
+        # jsonWebToken: JsonWebToken
+        + fetch(String, Collection<Field>): GetResponse
+        + update(String, Collection<Field>, Types.Datapoint): SetResponse
+        + streamedUpdate(StreamObserver<...Response>): StreamObserver<...Request>
+        + subscribe(String, Field): Subscription
+    }
+
+     class KuksaValV1Protocol {
+        # jsonWebToken: JsonWebToken
         + fetch(FetchRequest): GetResponse
         + fetch<T : VssNode>(VssNodeFetchRequest<T>)
+        + subscribe(SubscribeRequest, VssPathListener)
+        + subscribe(SubscribeRequest): Flow<SubscribeResponse>
+        + subscribe<T : VssNode>(VssNodeSubscribeRequest, VssNodeListener<T>)
         + update(UpdateRequest): SetResponse
-        + update(VssNodeUpdateRequest): SetResponse
-        + disconnect()
+        + update<T : VssNode>(request: VssNodeUpdateRequest<T>): VssNodeUpdateResponse
+        + streamedUpdate(StreamObserver<...Response>): StreamObserver<...Request>
+    }
+
+     class DataBrokerTransporterV2 {
+         # jsonWebToken: JsonWebToken
+         + fetchValue(Types.SignalID): GetValueResponse
+         + fetchValues(List<Types.SignalID>): GetValuesResponse
+         + subscribeById(List<Int>, bufferSize: Int): Flow<SubscribeByIdResponse>
+         + subscribe(List<String>, bufferSize: Int): Flow<SubscribeResponse>
+         + actuate(Types.SignalID, value: Value): ActuateResponse
+         + batchActuate(List<Types.SignalID>, value: Value): BatchActuateResponse
+         + listMetadata(String, String): ListMetadataResponse
+         + publishValue(Types.SignalID, Types.Datapoint): PublishValueResponse
+         + openProviderStream(StreamObserver<...Response>): StreamObserver<...Request>
+         + fetchServerInfo(): GetServerInfoResponse
+     }
+
+    class KuksaValV2Protocol {
+        # jsonWebToken: JsonWebToken
+        + fetchValue(FetchValueRequestV2): GetValueResponse
+        + fetchValues(FetchValuesRequestV2): GetValuesResponse
+        + subscribeById(SubscribeByIdRequestV2): Flow<SubscribeByIdResponse>
+        + subscribe(SubscribeRequestV2): Flow<SubscribeResponse> {
+        + actuate(ActuateRequestV2): ActuateResponse
+        + batchActuate(BatchActuateRequestV2): BatchActuateResponse
+        + listMetadata(ListMetadataRequestV2): ListMetadataResponse
+        + publishValue(PublishValueRequestV2): PublishValueResponse
+        + openProviderStream(StreamObserver<...Response>): StreamObserver<...Request>
+        + fetchServerInfo(): GetServerInfoResponse
     }
     
     interface VssPathListener {
@@ -78,29 +87,7 @@ package kuksa {
         + onError(Throwable)
     }
 
-    package request {
-        interface DataBrokerRequest {
-            + vssPath: String
-            + fields: Array<out Field>
-        }
 
-        class UpdateRequest {
-            + dataPoint: Datapoint
-        }
-
-        class VssNodeDataBrokerRequest<T : VssNode> {
-            + vssNode: T
-        }
-
-        DataBrokerRequest <|-- FetchRequest
-        DataBrokerRequest <|-- SubscribeRequest
-        DataBrokerRequest <|-- UpdateRequest
-        DataBrokerRequest <|-- VssNodeDataBrokerRequest
-
-        VssNodeDataBrokerRequest <|-- VssNodeFetchRequest
-        VssNodeDataBrokerRequest <|-- VssNodeSubscribeRequest
-        VssNodeDataBrokerRequest <|-- VssNodeUpdateRequest
-    }
 
     class DataBrokerException
 
@@ -115,12 +102,16 @@ package kuksa {
 
     class JsonWebToken {
         + authScheme: String
-        + authParameters: String
+        + token: String
     }
 }
 
 DataBrokerConnector -up-> ManagedChannel
-DataBrokerConnection -right-> proto
-DataBrokerConnection -right-> request
+DataBrokerConnection *-down- KuksaValV1Protocol
+DataBrokerConnection *-down- KuksaValV2Protocol
+KuksaValV1Protocol -down-> DataBrokerTransporterV1
+KuksaValV2Protocol -down-> DataBrokerTransporterV2
+DataBrokerTransporterV1 -down-> DataBrokerException: throws
+DataBrokerTransporterV2 -down-> DataBrokerException: throws
 
 @enduml

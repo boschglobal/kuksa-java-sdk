@@ -44,10 +44,8 @@ class KuksaValV2Protocol internal constructor(
     private val managedChannel: ManagedChannel,
     private val dataBrokerTransporterV2: DataBrokerTransporterV2 = DataBrokerTransporterV2(managedChannel),
 ) {
-    /**
-     * A JsonWebToken can be provided to authenticate against the DataBroker.
-     */
-    var jsonWebToken: JsonWebToken? by Delegates.observable(null) { _, _, newValue ->
+    @Suppress("unused") // property is propagated to the transporter
+    internal var jsonWebToken: JsonWebToken? by Delegates.observable(null) { _, _, newValue ->
         dataBrokerTransporterV2.jsonWebToken = newValue
     }
 
@@ -226,9 +224,7 @@ class KuksaValV2Protocol internal constructor(
      *
      * @throws DataBrokerException when an error occurs
      */
-    suspend fun publishValue(
-        request: PublishValueRequestV2,
-    ): KuksaValV2.PublishValueResponse {
+    suspend fun publishValue(request: PublishValueRequestV2): KuksaValV2.PublishValueResponse {
         return dataBrokerTransporterV2.publishValue(request.signalId, request.datapoint)
     }
 

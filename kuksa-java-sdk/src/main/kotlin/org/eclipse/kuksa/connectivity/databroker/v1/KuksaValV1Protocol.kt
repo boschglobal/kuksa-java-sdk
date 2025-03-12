@@ -58,17 +58,15 @@ import kotlin.properties.Delegates
  */
 class KuksaValV1Protocol internal constructor(
     private val managedChannel: ManagedChannel,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val dataBrokerTransporterV1: DataBrokerTransporterV1 = DataBrokerTransporterV1(
         managedChannel,
     ),
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
     private val logger = Logger.getLogger(TAG)
 
-    /**
-     * A JsonWebToken can be provided to authenticate against the DataBroker.
-     */
-    var jsonWebToken: JsonWebToken? by Delegates.observable(null) { _, _, newValue ->
+    @Suppress("unused") // property is propagated to the transporter
+    internal var jsonWebToken: JsonWebToken? by Delegates.observable(null) { _, _, newValue ->
         dataBrokerTransporterV1.jsonWebToken = newValue
     }
 

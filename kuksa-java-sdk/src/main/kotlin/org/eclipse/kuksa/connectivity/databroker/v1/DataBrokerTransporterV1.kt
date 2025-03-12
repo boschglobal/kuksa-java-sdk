@@ -59,14 +59,14 @@ internal class DataBrokerTransporterV1(
     private val managedChannel: ManagedChannel,
 ) {
 
-    private val logger = Logger.getLogger(TAG)
-
     init {
         val state = managedChannel.getState(false)
         check(state == ConnectivityState.READY) {
             "ManagedChannel needs to be connected to the target"
         }
     }
+
+    private val logger = Logger.getLogger(TAG)
 
     private val coroutineStub = VALGrpcKt.VALCoroutineStub(managedChannel)
     private val asyncStub = VALGrpc.newStub(managedChannel)
