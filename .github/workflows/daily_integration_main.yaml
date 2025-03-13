@@ -19,6 +19,6 @@ jobs:
       - name: Run Tests
         uses: ./.github/actions/run-tests
         with:
-          upload-test-reports: true
+          upload-test-reports: 'true'
           databroker-version: main
           kotest-tag: "Integration"
