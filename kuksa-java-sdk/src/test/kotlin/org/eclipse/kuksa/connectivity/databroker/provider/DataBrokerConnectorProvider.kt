@@ -53,7 +53,6 @@ class DataBrokerConnectorProvider {
     ): DataBrokerConnector {
         managedChannel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build()
 
-
         val jsonWebToken = jwtFileStream?.let {
             val token = it.reader().readText()
             JsonWebToken(token)
