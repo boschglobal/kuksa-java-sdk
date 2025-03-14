@@ -64,7 +64,7 @@ class DataBrokerTransporterTest : BehaviorSpec({
         connector.connect()
 
         and("An Instance of DataBrokerTransporter") {
-            val classUnderTest = DataBrokerTransporterV1(dataBrokerConnectorProvider.managedChannel)
+            val classUnderTest = DataBrokerInvokerV1(dataBrokerConnectorProvider.managedChannel)
 
             and("Some VSS-related data") {
                 val vssPath = "Vehicle.ADAS.CruiseControl.SpeedSet"
@@ -163,7 +163,7 @@ class DataBrokerTransporterTest : BehaviorSpec({
 
         `when`("Trying to instantiate the DataBrokerTransporter") {
             val result = kotlin.runCatching {
-                DataBrokerTransporterV1(inactiveManagedChannel)
+                DataBrokerInvokerV1(inactiveManagedChannel)
             }
 
             then("An IllegalStateException is thrown") {

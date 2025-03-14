@@ -55,7 +55,7 @@ import java.util.logging.Logger
  *
  * @throws IllegalStateException in case the state of the [managedChannel] is not [ConnectivityState.READY]
  */
-internal class DataBrokerTransporterV1(
+internal class DataBrokerInvokerV1(
     private val managedChannel: ManagedChannel,
 ) {
 

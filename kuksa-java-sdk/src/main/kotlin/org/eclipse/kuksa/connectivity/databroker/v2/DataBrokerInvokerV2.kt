@@ -48,7 +48,7 @@ import org.eclipse.kuksa.proto.v2.subscribeRequest
  *
  * @throws IllegalStateException in case the state of the [managedChannel] is not [ConnectivityState.READY]
  */
-internal class DataBrokerTransporterV2(
+internal class DataBrokerInvokerV2(
     private val managedChannel: ManagedChannel,
 ) {
 

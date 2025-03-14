@@ -44,11 +44,11 @@ private const val SUBSCRIBE_MAX_BUFFER_SIZE = 1_000
 @Suppress("TooManyFunctions") // most methods are simply exposed from transporter layer
 class KuksaValV2Protocol internal constructor(
     private val managedChannel: ManagedChannel,
-    private val dataBrokerTransporterV2: DataBrokerTransporterV2 = DataBrokerTransporterV2(managedChannel),
+    private val dataBrokerInvokerV2: DataBrokerInvokerV2 = DataBrokerInvokerV2(managedChannel),
 ) {
     @Suppress("unused") // property is propagated to the transporter
     internal var jsonWebToken: JsonWebToken? by Delegates.observable(null) { _, _, newValue ->
-        dataBrokerTransporterV2.jsonWebToken = newValue
+        dataBrokerInvokerV2.jsonWebToken = newValue
     }
 
     /**
@@ -66,7 +66,7 @@ class KuksaValV2Protocol internal constructor(
      * @throws DataBrokerException when an error occurs
      */
     suspend fun fetchValue(request: FetchValueRequestV2): KuksaValV2.GetValueResponse {
-        return dataBrokerTransporterV2.fetchValue(request.signalId)
+        return dataBrokerInvokerV2.fetchValue(request.signalId)
     }
 
     /**
@@ -84,7 +84,7 @@ class KuksaValV2Protocol internal constructor(
      * @throws DataBrokerException when an error occurs
      */
     suspend fun fetchValues(request: FetchValuesRequestV2): KuksaValV2.GetValuesResponse {
-        return dataBrokerTransporterV2.fetchValues(request.signalIds)
+        return dataBrokerInvokerV2.fetchValues(request.signalIds)
     }
 
     /**
@@ -114,7 +114,7 @@ class KuksaValV2Protocol internal constructor(
         val signalIds = request.signalIds
         val bufferSize = request.bufferSize
 
-        return dataBrokerTransporterV2.subscribeById(signalIds, bufferSize)
+        return dataBrokerInvokerV2.subscribeById(signalIds, bufferSize)
     }
 
     /**
@@ -153,7 +153,7 @@ class KuksaValV2Protocol internal constructor(
             )
         }
 
-        return dataBrokerTransporterV2.subscribe(signalPaths, bufferSize)
+        return dataBrokerInvokerV2.subscribe(signalPaths, bufferSize)
     }
 
     /**
@@ -176,7 +176,7 @@ class KuksaValV2Protocol internal constructor(
      * @throws DataBrokerException when an error occurs
      */
     suspend fun actuate(request: ActuateRequestV2): KuksaValV2.ActuateResponse {
-        return dataBrokerTransporterV2.actuate(request.signalId, request.value)
+        return dataBrokerInvokerV2.actuate(request.signalId, request.value)
     }
 
     /**
@@ -201,7 +201,7 @@ class KuksaValV2Protocol internal constructor(
      * @throws DataBrokerException when an error occurs
      */
     suspend fun batchActuate(request: BatchActuateRequestV2): KuksaValV2.BatchActuateResponse {
-        return dataBrokerTransporterV2.batchActuate(request.signalIds, request.value)
+        return dataBrokerInvokerV2.batchActuate(request.signalIds, request.value)
     }
 
     /**
@@ -215,7 +215,7 @@ class KuksaValV2Protocol internal constructor(
      * @throws DataBrokerException when an error occurs
      */
     suspend fun listMetadata(request: ListMetadataRequestV2): KuksaValV2.ListMetadataResponse {
-        return dataBrokerTransporterV2.listMetadata(request.root, request.filter)
+        return dataBrokerInvokerV2.listMetadata(request.root, request.filter)
     }
 
     /**
@@ -236,7 +236,7 @@ class KuksaValV2Protocol internal constructor(
      * @throws DataBrokerException when an error occurs
      */
     suspend fun publishValue(request: PublishValueRequestV2): KuksaValV2.PublishValueResponse {
-        return dataBrokerTransporterV2.publishValue(request.signalId, request.datapoint)
+        return dataBrokerInvokerV2.publishValue(request.signalId, request.datapoint)
     }
 
     /**
@@ -279,7 +279,7 @@ class KuksaValV2Protocol internal constructor(
     fun openProviderStream(
         responseStream: StreamObserver<KuksaValV2.OpenProviderStreamResponse>,
     ): StreamObserver<KuksaValV2.OpenProviderStreamRequest> {
-        return dataBrokerTransporterV2.openProviderStream(responseStream)
+        return dataBrokerInvokerV2.openProviderStream(responseStream)
     }
 
     /**
@@ -288,6 +288,6 @@ class KuksaValV2Protocol internal constructor(
      * @throws DataBrokerException when an error occurs
      */
     suspend fun fetchServerInfo(): KuksaValV2.GetServerInfoResponse {
-        return dataBrokerTransporterV2.fetchServerInfo()
+        return dataBrokerInvokerV2.fetchServerInfo()
     }
 }

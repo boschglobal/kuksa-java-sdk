@@ -58,7 +58,7 @@ import kotlin.properties.Delegates
  */
 class KuksaValV1Protocol internal constructor(
     private val managedChannel: ManagedChannel,
-    private val dataBrokerTransporterV1: DataBrokerTransporterV1 = DataBrokerTransporterV1(
+    private val dataBrokerInvokerV1: DataBrokerInvokerV1 = DataBrokerInvokerV1(
         managedChannel,
     ),
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
@@ -67,7 +67,7 @@ class KuksaValV1Protocol internal constructor(
 
     @Suppress("unused") // property is propagated to the transporter
     internal var jsonWebToken: JsonWebToken? by Delegates.observable(null) { _, _, newValue ->
-        dataBrokerTransporterV1.jsonWebToken = newValue
+        dataBrokerInvokerV1.jsonWebToken = newValue
     }
 
     /**
@@ -82,7 +82,7 @@ class KuksaValV1Protocol internal constructor(
         val vssPath = request.vssPath
         val fields = request.fields.toList()
 
-        dataBrokerTransporterV1.subscribe(vssPath, fields, listener)
+        dataBrokerInvokerV1.subscribe(vssPath, fields, listener)
     }
 
     /**
@@ -97,7 +97,7 @@ class KuksaValV1Protocol internal constructor(
         val vssPath = request.vssPath
         val fields = request.fields.toList()
 
-        return dataBrokerTransporterV1.subscribe(vssPath, fields)
+        return dataBrokerInvokerV1.subscribe(vssPath, fields)
     }
 
     /**
@@ -119,7 +119,7 @@ class KuksaValV1Protocol internal constructor(
         val fields = request.fields.toList()
 
         val vssNodePathListener = VssNodePathListener(vssNode, listener)
-        dataBrokerTransporterV1.subscribe(vssPath, fields, vssNodePathListener)
+        dataBrokerInvokerV1.subscribe(vssPath, fields, vssNodePathListener)
     }
 
     /**
@@ -130,7 +130,7 @@ class KuksaValV1Protocol internal constructor(
      */
     suspend fun fetch(request: FetchRequest): GetResponse {
         logger.finer("Fetching via request: $request")
-        return dataBrokerTransporterV1.fetch(request.vssPath, request.fields.toSet())
+        return dataBrokerInvokerV1.fetch(request.vssPath, request.fields.toSet())
     }
 
     /**
@@ -179,7 +179,7 @@ class KuksaValV1Protocol internal constructor(
      */
     suspend fun update(request: UpdateRequest): SetResponse {
         logger.finer("Update with request: $request")
-        return dataBrokerTransporterV1.update(request.vssPath, request.dataPoint, request.fields.toSet())
+        return dataBrokerInvokerV1.update(request.vssPath, request.dataPoint, request.fields.toSet())
     }
 
     /**
@@ -191,7 +191,7 @@ class KuksaValV1Protocol internal constructor(
     fun streamedUpdate(
         receiverStream: StreamObserver<KuksaValV1.StreamedUpdateResponse>,
     ): StreamObserver<KuksaValV1.StreamedUpdateRequest> {
-        return dataBrokerTransporterV1.streamedUpdate(receiverStream)
+        return dataBrokerInvokerV1.streamedUpdate(receiverStream)
     }
 
     /**

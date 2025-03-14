@@ -24,9 +24,9 @@ import io.grpc.ManagedChannel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
-import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerTransporterV1
+import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerInvokerV1
 import org.eclipse.kuksa.connectivity.databroker.v1.KuksaValV1Protocol
-import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerTransporterV2
+import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerInvokerV2
 import org.eclipse.kuksa.connectivity.databroker.v2.KuksaValV2Protocol
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.pattern.listener.MultiListener
@@ -40,10 +40,10 @@ import kotlin.properties.Delegates
 class DataBrokerConnection internal constructor(
     private val managedChannel: ManagedChannel,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val dataBrokerTransporterV1: DataBrokerTransporterV1 = DataBrokerTransporterV1(
+    private val dataBrokerInvokerV1: DataBrokerInvokerV1 = DataBrokerInvokerV1(
         managedChannel,
     ),
-    private val dataBrokerTransporterV2: DataBrokerTransporterV2 = DataBrokerTransporterV2(
+    private val dataBrokerInvokerV2: DataBrokerInvokerV2 = DataBrokerInvokerV2(
         managedChannel,
     ),
 ) {
@@ -58,12 +58,12 @@ class DataBrokerConnection internal constructor(
      * A JsonWebToken can be provided to authenticate against the DataBroker.
      */
     var jsonWebToken: JsonWebToken? by Delegates.observable(null) { _, _, newValue ->
-        dataBrokerTransporterV1.jsonWebToken = newValue
-        dataBrokerTransporterV2.jsonWebToken = newValue
+        dataBrokerInvokerV1.jsonWebToken = newValue
+        dataBrokerInvokerV2.jsonWebToken = newValue
     }
 
-    val kuksaValV1 = KuksaValV1Protocol(managedChannel, dataBrokerTransporterV1, dispatcher)
-    val kuksaValV2 = KuksaValV2Protocol(managedChannel, dataBrokerTransporterV2)
+    val kuksaValV1 = KuksaValV1Protocol(managedChannel, dataBrokerInvokerV1, dispatcher)
+    val kuksaValV2 = KuksaValV2Protocol(managedChannel, dataBrokerInvokerV2)
 
     init {
         val state = managedChannel.getState(false)

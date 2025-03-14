@@ -34,7 +34,7 @@ package kuksa {
         + disconnect()
     }
 
-    class DataBrokerTransporterV1 {
+    class DataBrokerInvokerV1 {
         # jsonWebToken: JsonWebToken
         + fetch(String, Collection<Field>): GetResponse
         + update(String, Collection<Field>, Types.Datapoint): SetResponse
@@ -54,7 +54,7 @@ package kuksa {
         + streamedUpdate(StreamObserver<...Response>): StreamObserver<...Request>
     }
 
-     class DataBrokerTransporterV2 {
+     class DataBrokerInvokerV2 {
          # jsonWebToken: JsonWebToken
          + fetchValue(Types.SignalID): GetValueResponse
          + fetchValues(List<Types.SignalID>): GetValuesResponse
@@ -109,9 +109,9 @@ package kuksa {
 DataBrokerConnector -up-> ManagedChannel
 DataBrokerConnection *-down- KuksaValV1Protocol
 DataBrokerConnection *-down- KuksaValV2Protocol
-KuksaValV1Protocol -down-> DataBrokerTransporterV1
-KuksaValV2Protocol -down-> DataBrokerTransporterV2
-DataBrokerTransporterV1 -down-> DataBrokerException: throws
-DataBrokerTransporterV2 -down-> DataBrokerException: throws
+KuksaValV1Protocol -down-> DataBrokerInvokerV1
+KuksaValV2Protocol -down-> DataBrokerInvokerV2
+DataBrokerInvokerV1 -down-> DataBrokerException: throws
+DataBrokerInvokerV2 -down-> DataBrokerException: throws
 
 @enduml

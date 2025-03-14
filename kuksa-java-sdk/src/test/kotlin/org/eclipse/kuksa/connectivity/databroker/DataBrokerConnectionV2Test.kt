@@ -36,7 +36,7 @@ import kotlinx.coroutines.flow.first
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.provider.DataBrokerConnectorProvider
-import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerTransporterV2
+import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerInvokerV2
 import org.eclipse.kuksa.connectivity.databroker.v2.extensions.toSignalId
 import org.eclipse.kuksa.connectivity.databroker.v2.extensions.updateRandomFloatValue
 import org.eclipse.kuksa.connectivity.databroker.v2.request.ActuateRequestV2
@@ -78,7 +78,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
         val dataBrokerConnection = connector.connect()
 
         val dataBrokerTransporter =
-            DataBrokerTransporterV2(dataBrokerConnectorProvider.managedChannel)
+            DataBrokerInvokerV2(dataBrokerConnectorProvider.managedChannel)
 
         `when`("trying to fetch multiple values") {
             val signalIds = listOf(
