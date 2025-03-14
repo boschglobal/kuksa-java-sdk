@@ -89,6 +89,7 @@ class KuksaValV1Protocol internal constructor(
      * Subscribes to the specified [request] and returns a flow with provides the corresponding updates.
      *
      * Throws a [DataBrokerException] in case the connection to the DataBroker is no longer active
+     * Throws a [io.grpc.StatusException] when an error occurs while collecting the flow.
      */
     fun subscribe(
         request: SubscribeRequest,

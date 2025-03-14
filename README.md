@@ -22,7 +22,7 @@ Unsupported protocols:
 
 ## kuksa.val.v1
 
-You can interact with the Databroker using the kuksa.val.v2 interface. The interface is exposed by the org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection#kuksaValV2 property.
+You can interact with the Databroker using the kuksa.val.v1 interface. The interface is exposed by the org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection#kuksaValV1 property.
 
 After successfully connecting the following methods are supported by org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection:
 - fetch(FetchRequest): GetResponse

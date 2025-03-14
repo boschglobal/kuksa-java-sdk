@@ -35,6 +35,8 @@ import org.eclipse.kuksa.connectivity.databroker.v2.request.SubscribeRequestV2
 import org.eclipse.kuksa.proto.v2.KuksaValV2
 import kotlin.properties.Delegates
 
+private const val SUBSCRIBE_MAX_BUFFER_SIZE = 1_000
+
 /**
  * The DataBrokerConnection holds an active connection to the DataBroker. The Connection can be use to interact with the
  * DataBroker.
@@ -135,12 +137,21 @@ class KuksaValV2Protocol internal constructor(
      * to the specified buffer_size before the oldest messages are dropped.
      *
      * @throws DataBrokerException when an error occurs
+     * @throws io.grpc.StatusException when an error occurs while collecting the flow.
      */
     fun subscribe(
         request: SubscribeRequestV2,
     ): Flow<KuksaValV2.SubscribeResponse> {
         val signalPaths = request.signalPaths
         val bufferSize = request.bufferSize
+
+        if (bufferSize < 0) {
+            throw DataBrokerException("INVALID_ARGUMENT: Subscription BufferSize ($bufferSize) min allowed value is 0")
+        } else if (bufferSize > SUBSCRIBE_MAX_BUFFER_SIZE) {
+            throw DataBrokerException(
+                "INVALID_ARGUMENT: Subscription bufferSize max allowed value is $SUBSCRIBE_MAX_BUFFER_SIZE",
+            )
+        }
 
         return dataBrokerTransporterV2.subscribe(signalPaths, bufferSize)
     }

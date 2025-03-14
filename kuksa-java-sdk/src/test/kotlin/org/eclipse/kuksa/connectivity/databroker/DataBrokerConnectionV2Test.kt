@@ -54,6 +54,7 @@ import org.eclipse.kuksa.test.kotest.InsecureDataBroker
 import org.eclipse.kuksa.test.kotest.Integration
 import org.junit.jupiter.api.Assertions
 import kotlin.random.Random
+import io.kotest.matchers.should
 
 class DataBrokerConnectionV2Test : BehaviorSpec({
     tags(Integration, Insecure, InsecureDataBroker)
@@ -245,7 +246,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
         }
 
-        and("An INVALID VSS Path") {
+        and("A SubscribeRequest with an invalid VSS Path") {
             val invalidVssPath = "Vehicle.Some.Unknown.Path"
             val invalidSignalId = SignalID.newBuilder().setPath(invalidVssPath).build()
 
@@ -289,6 +290,24 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
                     val exception = result.exceptionOrNull()!!
                     exception shouldBe instanceOf(DataBrokerException::class)
                     exception.message shouldContain "NOT_FOUND"
+                }
+            }
+        }
+
+        and("A SubscribeRequest with a negative bufferSize") {
+            val vssPath = "Vehicle.Speed"
+            val signalPaths = listOf(vssPath)
+            val subscribeRequest = SubscribeRequestV2(signalPaths, -128)
+
+            val responseFlow = dataBrokerConnection.kuksaValV2.subscribe(subscribeRequest)
+            then("An initial update is sent") {
+                runCatching {
+                    responseFlow.first()
+                }.onFailure { e ->
+                    e shouldBe instanceOf(StatusException::class)
+                    e.message shouldContain "INVALID_ARGUMENT"
+                }.onSuccess {
+                    fail("Should not succeed.")
                 }
             }
         }
