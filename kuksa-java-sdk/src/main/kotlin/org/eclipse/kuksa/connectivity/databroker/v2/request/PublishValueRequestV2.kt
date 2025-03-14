@@ -20,9 +20,22 @@
 package org.eclipse.kuksa.connectivity.databroker.v2.request
 
 import org.eclipse.kuksa.proto.v2.Types
+import org.eclipse.kuksa.proto.v2.Types.SignalID
 
 /**
  * Used for publish value requests with
- * [org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectionV2.publishValue].
+ * [org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection.kuksaValV2.publishValue].
  */
-class PublishValueRequestV2(val signalId: Types.SignalID, val datapoint: Types.Datapoint)
+data class PublishValueRequestV2(val signalId: SignalID, val datapoint: Types.Datapoint) {
+    companion object {
+        fun fromVssPath(vssPath: String, datapoint: Types.Datapoint): PublishValueRequestV2 {
+            val signalId = SignalID.newBuilder().setPath(vssPath).build()
+            return PublishValueRequestV2(signalId, datapoint)
+        }
+
+        fun fromId(id: Int, datapoint: Types.Datapoint): PublishValueRequestV2 {
+            val signalId = SignalID.newBuilder().setId(id).build()
+            return PublishValueRequestV2(signalId, datapoint)
+        }
+    }
+}

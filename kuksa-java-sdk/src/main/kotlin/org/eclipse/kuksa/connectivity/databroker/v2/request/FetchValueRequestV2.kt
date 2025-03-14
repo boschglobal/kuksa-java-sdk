@@ -19,9 +19,22 @@
 
 package org.eclipse.kuksa.connectivity.databroker.v2.request
 
-import org.eclipse.kuksa.proto.v2.Types
+import org.eclipse.kuksa.proto.v2.Types.SignalID
 
 /**
- * Used for fetch value requests with [org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectionV2.fetchValue].
+ * Used for fetch value requests with
+ * [org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection.kuksaValV2.fetchValue].
  */
-class FetchValueRequestV2(val signalId: Types.SignalID)
+data class FetchValueRequestV2(val signalId: SignalID) {
+    companion object {
+        fun fromVssPath(vssPath: String): FetchValueRequestV2 {
+            val signalId = SignalID.newBuilder().setPath(vssPath).build()
+            return FetchValueRequestV2(signalId)
+        }
+
+        fun fromId(id: Int): FetchValueRequestV2 {
+            val signalId = SignalID.newBuilder().setId(id).build()
+            return FetchValueRequestV2(signalId)
+        }
+    }
+}

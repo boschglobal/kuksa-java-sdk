@@ -19,10 +19,23 @@
 
 package org.eclipse.kuksa.connectivity.databroker.v2.request
 
-import org.eclipse.kuksa.proto.v2.Types
+import org.eclipse.kuksa.proto.v2.Types.SignalID
 import org.eclipse.kuksa.proto.v2.Types.Value
 
 /**
- * Used for actuate requests with [org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectionV2.actuate].
+ * Used for actuate requests with
+ * [org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection.kuksaValV2.actuate].
  */
-class ActuateRequestV2(val signalId: Types.SignalID, val value: Value)
+data class ActuateRequestV2(val signalId: SignalID, val value: Value) {
+    companion object {
+        fun fromVssPath(vssPath: String, value: Value): ActuateRequestV2 {
+            val signalId = SignalID.newBuilder().setPath(vssPath).build()
+            return ActuateRequestV2(signalId, value)
+        }
+
+        fun fromId(id: Int, value: Value): ActuateRequestV2 {
+            val signalId = SignalID.newBuilder().setId(id).build()
+            return ActuateRequestV2(signalId, value)
+        }
+    }
+}
