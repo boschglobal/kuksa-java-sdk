@@ -54,7 +54,6 @@ import org.eclipse.kuksa.test.kotest.InsecureDataBroker
 import org.eclipse.kuksa.test.kotest.Integration
 import org.junit.jupiter.api.Assertions
 import kotlin.random.Random
-import io.kotest.matchers.should
 
 class DataBrokerConnectionV2Test : BehaviorSpec({
     tags(Integration, Insecure, InsecureDataBroker)
@@ -299,15 +298,16 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             val signalPaths = listOf(vssPath)
             val subscribeRequest = SubscribeRequestV2(signalPaths, -128)
 
-            val responseFlow = dataBrokerConnection.kuksaValV2.subscribe(subscribeRequest)
-            then("An initial update is sent") {
-                runCatching {
-                    responseFlow.first()
-                }.onFailure { e ->
-                    e shouldBe instanceOf(StatusException::class)
+            val result = runCatching {
+                dataBrokerConnection.kuksaValV2.subscribe(subscribeRequest)
+            }
+
+            then("It should throw a DataBrokerException") {
+                result.onFailure { e ->
+                    e shouldBe instanceOf(DataBrokerException::class)
                     e.message shouldContain "INVALID_ARGUMENT"
                 }.onSuccess {
-                    fail("Should not succeed.")
+                    fail("Using a negative bufferSize should not succeed.")
                 }
             }
         }
