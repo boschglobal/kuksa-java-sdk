@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.0](https://github.com/eclipse-kuksa/kuksa-java-sdk/compare/release/release/v0.3.2...release/v0.4.0) (2025-03-26)
+
+### Features
+
+* Introduce Common Classes for kuksa.val.v1 and kuksa.val.v2 ([81d9f82](https://github.com/eclipse-kuksa/kuksa-java-sdk/commit/81d9f8236269ba72020a3ecaad9b9d86bdfda6a2))
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove DataBrokerSubscriber ([4be2081](https://github.com/eclipse-kuksa/kuksa-java-sdk/commit/4be20818617e160ae95775a677c8eb2c12011a91))
+* DataBrokerConnection#unsubscribe was removed
+the unsubscribe method now returns a CancelableContext which
+must be stored by the user, if canceling the subscription is needed.
+* kuksa.val.v1 and kuksa.val.v2 specific classes were slimlined
+- DataBrokerConnector: Package has been changed
+- DataBrokerConnection: Package has been changed
+- DataBrokerConnection: Api specific calls were moved to DatabrokerConnection#kuksaValV1 resp. DatabrokerConnection#kuksaValV2
+- DataBrokerConnectorV2: Removed
+- DataBrokerConnectionV2: Removed
+
 ## [0.3.2](https://github.com/eclipse-kuksa/kuksa-java-sdk/compare/release/release/v0.3.1...release/v0.3.2) (2025-02-20)
 
 
