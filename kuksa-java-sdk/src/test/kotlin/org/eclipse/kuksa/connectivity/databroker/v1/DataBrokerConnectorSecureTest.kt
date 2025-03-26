@@ -22,7 +22,7 @@ package org.eclipse.kuksa.connectivity.databroker.v1
 import io.kotest.core.spec.style.BehaviorSpec
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.SecureDataBrokerDockerContainer
-import org.eclipse.kuksa.connectivity.databroker.v1.provider.DataBrokerConnectorProvider
+import org.eclipse.kuksa.connectivity.databroker.provider.DataBrokerConnectorProvider
 import org.eclipse.kuksa.test.TestResourceFile
 import org.eclipse.kuksa.test.kotest.Integration
 import org.eclipse.kuksa.test.kotest.Secure
@@ -53,6 +53,7 @@ class DataBrokerConnectorSecureTest : BehaviorSpec({
             val tlsCertificate = TestResourceFile("tls/CA.pem")
 
             val dataBrokerConnector = dataBrokerConnectorProvider.createSecure(
+                port = databrokerContainer!!.port,
                 rootCertFileStream = tlsCertificate.inputStream(),
             )
 

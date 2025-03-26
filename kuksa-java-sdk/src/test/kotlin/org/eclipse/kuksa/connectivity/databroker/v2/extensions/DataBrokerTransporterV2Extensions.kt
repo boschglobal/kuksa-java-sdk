@@ -20,12 +20,12 @@
 package org.eclipse.kuksa.connectivity.databroker.v2.extensions
 
 import io.kotest.assertions.fail
-import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerTransporterV2
+import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerInvokerV2
 import org.eclipse.kuksa.proto.v2.Types
 import org.eclipse.kuksa.proto.v2.Types.SignalID
 import kotlin.random.Random
 
-internal suspend fun DataBrokerTransporterV2.updateRandomFloatValue(
+internal suspend fun DataBrokerInvokerV2.updateRandomFloatValue(
     vssPath: String,
     maxValue: Int = 300,
 ): Float {
@@ -46,7 +46,7 @@ internal suspend fun DataBrokerTransporterV2.updateRandomFloatValue(
     return randomFloat
 }
 
-internal suspend fun DataBrokerTransporterV2.updateRandomUint32Value(
+internal suspend fun DataBrokerInvokerV2.updateRandomUint32Value(
     vssPath: String,
     maxValue: Int = 300,
 ): Int {
@@ -66,7 +66,7 @@ internal suspend fun DataBrokerTransporterV2.updateRandomUint32Value(
     return randomValue
 }
 
-internal suspend fun DataBrokerTransporterV2.toggleBoolean(vssPath: String): Boolean {
+internal suspend fun DataBrokerInvokerV2.toggleBoolean(vssPath: String): Boolean {
     var newBoolean: Boolean? = null
     try {
         val signalId = SignalID.newBuilder().setPath(vssPath).build()

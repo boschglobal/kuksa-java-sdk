@@ -6,8 +6,6 @@ package VssCore {
     VssNode <|- VssBranch
     VssNode <|-- VssSignal
 
-    annotation VssModelGenerator
-
     interface VssNode {
         + children: Set<VssNode>
         + parentClass: KClass<*>

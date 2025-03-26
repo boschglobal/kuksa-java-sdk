@@ -17,45 +17,52 @@ Currently the following protocols are supported:
 - kuksa.val.v1
 - kuksa.val.v2
 
+Unsupported protocols:
+- sdv.databroker.v1
+
 ## kuksa.val.v1
 
-You can interact with the Databroker using the kuksa.val.v1 interface by using the 
-org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnector class.
+You can interact with the Databroker using the kuksa.val.v1 interface. The interface is exposed by the org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection#kuksaValV1 property.
 
 After successfully connecting the following methods are supported by org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection:
-- subscribe(SubscribeRequest, VssPathListener)
-- unsubscribe(SubscribeRequest, VssPathListener)
-- subscribe(VssNodeSubscribeRequest<T>, VssNodeListener<T>)
-- unsubscribe(VssNodeSubscribeRequest<T>, VssNodeListener<T>)
 - fetch(FetchRequest): GetResponse
-- fetch(VssNodeFetchRequest<T>): T
+- fetch<T : VssNode>(VssNodeFetchRequest<T>)
+- subscribe(SubscribeRequest, VssPathListener)
+- subscribe(SubscribeRequest): Flow<SubscribeResponse>
+- subscribe<T : VssNode>(VssNodeSubscribeRequest, VssNodeListener<T>)
 - update(UpdateRequest): SetResponse
-- update(VssNodeUpdateRequest<T>): VssNodeUpdateResponse
+- update<T : VssNode>(request: VssNodeUpdateRequest<T>): VssNodeUpdateResponse
+- streamedUpdate(StreamObserver<...Response>): StreamObserver<...Request>
 
 ## kuksa.val.v2
 
-You can interact with the Databroker using the kuksa.val.v1 interface by using the
-org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectorV2 class.
+You can interact with the Databroker using the kuksa.val.v2 interface. The interface is exposed by the org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection#kuksaValV1 property.
 
-After successfully connecting the following methods are supported by org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectionV2:
 - fetchValue(FetchValueRequestV2): GetValueResponse
 - fetchValues(FetchValuesRequestV2): GetValuesResponse
 - subscribeById(SubscribeByIdRequestV2): Flow<SubscribeByIdResponse>
-- subscribe(SubscribeRequestV2): Flow<SubscribeResponse>
+- subscribe(SubscribeRequestV2): Flow<SubscribeResponse> {
 - actuate(ActuateRequestV2): ActuateResponse
 - batchActuate(BatchActuateRequestV2): BatchActuateResponse
 - listMetadata(ListMetadataRequestV2): ListMetadataResponse
 - publishValue(PublishValueRequestV2): PublishValueResponse
-- openProviderStream(StreamObserver<OpenProviderStreamResponse>): StreamObserver<OpenProviderStreamRequest>
+- openProviderStream(StreamObserver<...Response>): StreamObserver<...Request>
+- fetchServerInfo(): GetServerInfoResponse
 
 ## Integration
 
 *app/build.gradle.kts*
 ```
 implementation("org.eclipse.kuksa:kuksa-java-sdk:<VERSION>")
+
+// uncomment for android
+// implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:<x.y.z>")
+
+// uncomment for java
+// implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:<x.y.z>")
 ```
 
-The latest release version can be seen [here](https://github.com/eclipse-kuksa/kuksa-java-sdk/releases).
+The latest release version of the kuksa-java-sdk can be seen [here](https://github.com/eclipse-kuksa/kuksa-java-sdk/releases).
 
 
 See the [quickstart guide](https://github.com/eclipse-kuksa/kuksa-java-sdk/tree/main/docs/QUICKSTART.md) for additional integration options.
@@ -89,11 +96,12 @@ fun connectInsecure(host: String, port: Int) {
 }
 ```
 
+Sample Code: 
 ```kotlin
 fun fetch() {
     lifecycleScope.launch {
         val request = FetchRequest("Vehicle.Speed", listOf(Field.FIELD_VALUE))
-        val response = dataBrokerConnection?.fetch(request) ?: return@launch
+        val response = dataBrokerConnection?.kuksaValV1.fetch(request) ?: return@launch
         val entry = entriesList.first() // Don't forget to handle empty responses
         val value = entry.value
         val speed = value.float
@@ -101,6 +109,7 @@ fun fetch() {
 }
 ```
 
+More samples can be found here [here](https://github.com/eclipse-kuksa/kuksa-java-sdk/blob/main/samples/src/main/java/com/example/samples/Main.kt)
 Refer to the [quickstart guide](https://github.com/eclipse-kuksa/kuksa-java-sdk/tree/main/docs/QUICKSTART.md) or
 [class diagrams](https://github.com/eclipse-kuksa/kuksa-java-sdk/blob/main/docs/kuksa-sdk_class-diagram.puml) for
 further insight into the KUKSA SDK API. 

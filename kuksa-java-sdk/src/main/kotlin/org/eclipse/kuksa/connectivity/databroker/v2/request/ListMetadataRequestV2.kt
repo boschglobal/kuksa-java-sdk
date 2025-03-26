@@ -21,6 +21,6 @@ package org.eclipse.kuksa.connectivity.databroker.v2.request
 
 /**
  * Used for list metadata requests with
- * [org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectionV2.listMetadata].
+ * [org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection.kuksaValV2.listMetadata].
  */
-class ListMetadataRequestV2(val root: String, val filter: String)
+data class ListMetadataRequestV2(val root: String, val filter: String = "*")

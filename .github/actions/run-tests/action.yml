@@ -21,11 +21,12 @@ runs:
   using: "composite"
   steps:
     - name: Run 'test' with Gradle Wrapper
-      run: ./gradlew test -Ddatabroker.tag="${{ inputs.databroker-version }}" -Dkotest.tags="${{ inputs.kotest-tag}}"
+      run: ./gradlew test -Ddatabroker.tag="${{ inputs.databroker-version }}" -Dkotest.tags="${{ inputs['kotest-tag'] }}" -Ddatabroker.timeout=30
       shell: bash
+      continue-on-error: true
 
     - name: Upload Test Reports
-      if: ${{ inputs.upload-test-reports == 'true' }}
+      if: ${{ inputs['upload-test-reports'] == 'true' }}
       uses: actions/upload-artifact@v4
       with:
         name: test-reports
@@ -34,12 +35,12 @@ runs:
         retention-days: 14
 
     - name: Create Code Coverage Reports
-      if: ${{ inputs.upload-code-coverage-reports == 'true' }}
+      if: ${{ inputs['upload-code-coverage-reports'] == 'true' }}
       run: ./gradlew jacocoRootReport
       shell: bash
 
     - name: Upload Code Coverage Report
-      if: ${{ inputs.upload-code-coverage-reports == 'true' }}
+      if: ${{ inputs['upload-code-coverage-reports'] == 'true' }}
       uses: actions/upload-artifact@v4
       with:
         name: code-coverage

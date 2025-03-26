@@ -20,11 +20,11 @@
 package org.eclipse.kuksa.connectivity.databroker.v1.extensions
 
 import io.kotest.assertions.fail
-import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerTransporter
+import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerInvokerV1
 import org.eclipse.kuksa.proto.v1.Types
 import kotlin.random.Random
 
-internal suspend fun DataBrokerTransporter.updateRandomFloatValue(
+internal suspend fun DataBrokerInvokerV1.updateRandomFloatValue(
     vssPath: String,
     maxValue: Int = 300,
 ): Float {
@@ -42,7 +42,7 @@ internal suspend fun DataBrokerTransporter.updateRandomFloatValue(
     return randomFloat
 }
 
-internal suspend fun DataBrokerTransporter.updateRandomUint32Value(
+internal suspend fun DataBrokerInvokerV1.updateRandomUint32Value(
     vssPath: String,
     maxValue: Int = 300,
 ): Int {
@@ -59,7 +59,7 @@ internal suspend fun DataBrokerTransporter.updateRandomUint32Value(
     return randomValue
 }
 
-internal suspend fun DataBrokerTransporter.toggleBoolean(vssPath: String): Boolean {
+internal suspend fun DataBrokerInvokerV1.toggleBoolean(vssPath: String): Boolean {
     val fields = setOf(Types.Field.FIELD_VALUE)
 
     var newBoolean: Boolean? = null

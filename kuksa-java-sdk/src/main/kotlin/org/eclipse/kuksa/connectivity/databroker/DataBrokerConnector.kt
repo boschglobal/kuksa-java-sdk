@@ -17,7 +17,7 @@
  *
  */
 
-package org.eclipse.kuksa.connectivity.databroker.v1
+package org.eclipse.kuksa.connectivity.databroker
 
 import io.grpc.ConnectivityState
 import io.grpc.ManagedChannel
@@ -26,7 +26,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
-import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.model.TimeoutConfig
 import java.util.logging.Logger

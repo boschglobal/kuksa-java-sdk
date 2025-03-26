@@ -19,11 +19,23 @@
 
 package org.eclipse.kuksa.connectivity.databroker.v2.request
 
-import org.eclipse.kuksa.proto.v2.Types
+import org.eclipse.kuksa.proto.v2.Types.SignalID
 import org.eclipse.kuksa.proto.v2.Types.Value
 
 /**
  * Used for batch actuate requests with
- * [org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectionV2.batchActuate].
+ * [org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection.kuksaValV2.batchActuate].
  */
-class BatchActuateRequestV2(val signalIds: List<Types.SignalID>, val value: Value)
+data class BatchActuateRequestV2(val signalIds: List<SignalID>, val value: Value) {
+    companion object {
+        fun fromVssPaths(vssPaths: List<String>, value: Value): BatchActuateRequestV2 {
+            val signalIds = vssPaths.map { vssPath -> SignalID.newBuilder().setPath(vssPath).build() }
+            return BatchActuateRequestV2(signalIds, value)
+        }
+
+        fun fromIds(ids: List<Int>, value: Value): BatchActuateRequestV2 {
+            val signalIds = ids.map { id -> SignalID.newBuilder().setId(id).build() }
+            return BatchActuateRequestV2(signalIds, value)
+        }
+    }
+}

@@ -19,14 +19,14 @@
 
 package org.eclipse.kuksa.connectivity.databroker.v1
 
-import io.grpc.ConnectivityState
 import io.grpc.ManagedChannel
+import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
-import org.eclipse.kuksa.connectivity.databroker.DisconnectListener
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssNodeListener
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
 import org.eclipse.kuksa.connectivity.databroker.v1.request.FetchRequest
@@ -36,11 +36,11 @@ import org.eclipse.kuksa.connectivity.databroker.v1.request.VssNodeFetchRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.VssNodeSubscribeRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.VssNodeUpdateRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.response.VssNodeUpdateResponse
-import org.eclipse.kuksa.connectivity.databroker.v1.subscription.DataBrokerSubscriber
+import org.eclipse.kuksa.connectivity.databroker.v1.subscription.VssNodePathListener
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.extension.datapoint
 import org.eclipse.kuksa.extension.vss.copy
-import org.eclipse.kuksa.pattern.listener.MultiListener
+import org.eclipse.kuksa.proto.v1.KuksaValV1
 import org.eclipse.kuksa.proto.v1.KuksaValV1.GetResponse
 import org.eclipse.kuksa.proto.v1.KuksaValV1.SetResponse
 import org.eclipse.kuksa.proto.v1.Types
@@ -56,41 +56,18 @@ import kotlin.properties.Delegates
  * The DataBrokerConnection holds an active connection to the DataBroker. The Connection can be use to interact with the
  * DataBroker.
  */
-class DataBrokerConnection internal constructor(
+class KuksaValV1Protocol internal constructor(
     private val managedChannel: ManagedChannel,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val dataBrokerTransporter: DataBrokerTransporter = DataBrokerTransporter(
+    private val dataBrokerInvokerV1: DataBrokerInvokerV1 = DataBrokerInvokerV1(
         managedChannel,
     ),
-    private val dataBrokerSubscriber: DataBrokerSubscriber = DataBrokerSubscriber(dataBrokerTransporter),
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
     private val logger = Logger.getLogger(TAG)
 
-    /**
-     * Used to register and unregister multiple [DisconnectListener].
-     */
-    val disconnectListeners = MultiListener<DisconnectListener>()
-
-    /**
-     * A JsonWebToken can be provided to authenticate against the DataBroker.
-     */
-    var jsonWebToken: JsonWebToken? by Delegates.observable(null) { _, _, newValue ->
-        dataBrokerTransporter.jsonWebToken = newValue
-    }
-
-    init {
-        val state = managedChannel.getState(false)
-        managedChannel.notifyWhenStateChanged(state) {
-            val newState = managedChannel.getState(false)
-            logger.finer("DataBrokerConnection state changed: $newState")
-            if (newState != ConnectivityState.SHUTDOWN) {
-                managedChannel.shutdownNow()
-            }
-
-            disconnectListeners.forEach { listener ->
-                listener.onDisconnect()
-            }
-        }
+    @Suppress("unused") // property is propagated to the transporter
+    internal var jsonWebToken: JsonWebToken? by Delegates.observable(null) { _, _, newValue ->
+        dataBrokerInvokerV1.jsonWebToken = newValue
     }
 
     /**
@@ -103,22 +80,24 @@ class DataBrokerConnection internal constructor(
         listener: VssPathListener,
     ) {
         val vssPath = request.vssPath
-        request.fields.forEach { field ->
-            dataBrokerSubscriber.subscribe(vssPath, field, listener)
-        }
+        val fields = request.fields.toList()
+
+        dataBrokerInvokerV1.subscribe(vssPath, fields, listener)
     }
 
     /**
-     * Unsubscribes the [listener] from updates of the specified [request].
+     * Subscribes to the specified [request] and returns a flow with provides the corresponding updates.
+     *
+     * Throws a [DataBrokerException] in case the connection to the DataBroker is no longer active
+     * Throws a [io.grpc.StatusException] when an error occurs while collecting the flow.
      */
-    fun unsubscribe(
+    fun subscribe(
         request: SubscribeRequest,
-        listener: VssPathListener,
-    ) {
+    ): Flow<KuksaValV1.SubscribeResponse> {
         val vssPath = request.vssPath
-        request.fields.forEach { field ->
-            dataBrokerSubscriber.unsubscribe(vssPath, field, listener)
-        }
+        val fields = request.fields.toList()
+
+        return dataBrokerInvokerV1.subscribe(vssPath, fields)
     }
 
     /**
@@ -135,26 +114,12 @@ class DataBrokerConnection internal constructor(
         request: VssNodeSubscribeRequest<T>,
         listener: VssNodeListener<T>,
     ) {
-        val fields = request.fields
+        val vssPath = request.vssPath
         val vssNode = request.vssNode
-        fields.forEach { field ->
-            dataBrokerSubscriber.subscribe(vssNode, field, listener)
-        }
-    }
+        val fields = request.fields.toList()
 
-    /**
-     * Unsubscribes the [listener] from updates of the specified [VssNodeSubscribeRequest.fields] and
-     * [VssNodeSubscribeRequest.vssNode].
-     */
-    fun <T : VssNode> unsubscribe(
-        request: VssNodeSubscribeRequest<T>,
-        listener: VssNodeListener<T>,
-    ) {
-        val fields = request.fields
-        val vssNode = request.vssNode
-        fields.forEach { field ->
-            dataBrokerSubscriber.unsubscribe(vssNode, field, listener)
-        }
+        val vssNodePathListener = VssNodePathListener(vssNode, listener)
+        dataBrokerInvokerV1.subscribe(vssPath, fields, vssNodePathListener)
     }
 
     /**
@@ -165,7 +130,7 @@ class DataBrokerConnection internal constructor(
      */
     suspend fun fetch(request: FetchRequest): GetResponse {
         logger.finer("Fetching via request: $request")
-        return dataBrokerTransporter.fetch(request.vssPath, request.fields.toSet())
+        return dataBrokerInvokerV1.fetch(request.vssPath, request.fields.toSet())
     }
 
     /**
@@ -214,7 +179,19 @@ class DataBrokerConnection internal constructor(
      */
     suspend fun update(request: UpdateRequest): SetResponse {
         logger.finer("Update with request: $request")
-        return dataBrokerTransporter.update(request.vssPath, request.dataPoint, request.fields.toSet())
+        return dataBrokerInvokerV1.update(request.vssPath, request.dataPoint, request.fields.toSet())
+    }
+
+    /**
+     * Allows the provider to continuously send updates to the DataBroker.
+     * @param receiverStream the receiverStream which will be notified about the responses.
+     *
+     * @return the senderStream, which can be used to emit new requests.
+     */
+    fun streamedUpdate(
+        receiverStream: StreamObserver<KuksaValV1.StreamedUpdateResponse>,
+    ): StreamObserver<KuksaValV1.StreamedUpdateRequest> {
+        return dataBrokerInvokerV1.streamedUpdate(receiverStream)
     }
 
     /**
@@ -240,13 +217,5 @@ class DataBrokerConnection internal constructor(
         }
 
         return VssNodeUpdateResponse(responses)
-    }
-
-    /**
-     * Disconnect from the DataBroker.
-     */
-    fun disconnect() {
-        logger.finer("disconnect() called")
-        managedChannel.shutdownNow()
     }
 }

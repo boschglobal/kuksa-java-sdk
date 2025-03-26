@@ -17,20 +17,19 @@
  *
  */
 
-package org.eclipse.kuksa.connectivity.databroker.v2
+package org.eclipse.kuksa.connectivity.databroker
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldNotBe
-import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
-import org.eclipse.kuksa.connectivity.databroker.v2.provider.DataBrokerConnectorV2Provider
+import org.eclipse.kuksa.connectivity.databroker.provider.DataBrokerConnectorProvider
 import org.eclipse.kuksa.test.kotest.Insecure
 import org.eclipse.kuksa.test.kotest.InsecureDataBroker
 import org.eclipse.kuksa.test.kotest.Integration
 
-class DataBrokerConnectorV2Test : BehaviorSpec({
+class DataBrokerConnectorTest : BehaviorSpec({
     tags(Integration, Insecure, InsecureDataBroker)
 
     var databrokerContainer: DataBrokerDockerContainer? = null
@@ -45,11 +44,13 @@ class DataBrokerConnectorV2Test : BehaviorSpec({
         databrokerContainer?.stop()
     }
 
-    given("A DataBrokerConnectorV2Provider") {
-        val dataBrokerConnectorProvider = DataBrokerConnectorV2Provider()
+    given("A DataBrokerConnectorProvider") {
+        val dataBrokerConnectorProvider = DataBrokerConnectorProvider()
 
         and("an insecure DataBrokerConnector with valid Host and Port") {
-            val dataBrokerConnector = dataBrokerConnectorProvider.createInsecure()
+            val dataBrokerConnector = dataBrokerConnectorProvider.createInsecure(
+                port = databrokerContainer!!.port,
+            )
 
             `when`("Trying to establish an insecure connection") {
                 val connection = dataBrokerConnector.connect()

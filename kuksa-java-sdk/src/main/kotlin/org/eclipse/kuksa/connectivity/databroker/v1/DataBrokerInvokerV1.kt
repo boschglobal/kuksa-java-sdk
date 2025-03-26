@@ -24,13 +24,22 @@ import io.grpc.Context
 import io.grpc.ManagedChannel
 import io.grpc.StatusException
 import io.grpc.stub.StreamObserver
+import kotlinx.coroutines.flow.Flow
 import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
 import org.eclipse.kuksa.connectivity.databroker.v1.extension.withAuthenticationInterceptor
-import org.eclipse.kuksa.connectivity.databroker.v1.subscription.DataBrokerSubscription
+import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
 import org.eclipse.kuksa.extension.TAG
 import org.eclipse.kuksa.extension.applyDatapoint
 import org.eclipse.kuksa.proto.v1.KuksaValV1
+import org.eclipse.kuksa.proto.v1.KuksaValV1.EntryRequest
+import org.eclipse.kuksa.proto.v1.KuksaValV1.EntryUpdate
+import org.eclipse.kuksa.proto.v1.KuksaValV1.GetRequest
+import org.eclipse.kuksa.proto.v1.KuksaValV1.GetResponse
+import org.eclipse.kuksa.proto.v1.KuksaValV1.SetRequest
+import org.eclipse.kuksa.proto.v1.KuksaValV1.SetResponse
+import org.eclipse.kuksa.proto.v1.KuksaValV1.SubscribeEntry
+import org.eclipse.kuksa.proto.v1.KuksaValV1.SubscribeRequest
 import org.eclipse.kuksa.proto.v1.KuksaValV1.SubscribeResponse
 import org.eclipse.kuksa.proto.v1.Types
 import org.eclipse.kuksa.proto.v1.Types.Field
@@ -41,16 +50,14 @@ import java.util.logging.Logger
 /**
  * Encapsulates the Protobuf-specific interactions with the DataBroker send over gRPC. Provides fetch, update and
  * subscribe methods to retrieve and update data, as well as registering to be notified about external data updates
- * using a [DataBrokerSubscription].
+ * using a Subscription.
  * The DataBrokerTransporter requires a [managedChannel] which is already connected to the corresponding DataBroker.
  *
  * @throws IllegalStateException in case the state of the [managedChannel] is not [ConnectivityState.READY]
  */
-internal class DataBrokerTransporter(
+internal class DataBrokerInvokerV1(
     private val managedChannel: ManagedChannel,
 ) {
-
-    private val logger = Logger.getLogger(TAG)
 
     init {
         val state = managedChannel.getState(false)
@@ -58,6 +65,8 @@ internal class DataBrokerTransporter(
             "ManagedChannel needs to be connected to the target"
         }
     }
+
+    private val logger = Logger.getLogger(TAG)
 
     private val coroutineStub = VALGrpcKt.VALCoroutineStub(managedChannel)
     private val asyncStub = VALGrpc.newStub(managedChannel)
@@ -75,12 +84,12 @@ internal class DataBrokerTransporter(
     suspend fun fetch(
         vssPath: String,
         fields: Collection<Field>,
-    ): KuksaValV1.GetResponse {
-        val entryRequest = KuksaValV1.EntryRequest.newBuilder()
+    ): GetResponse {
+        val entryRequest = EntryRequest.newBuilder()
             .setPath(vssPath)
             .addAllFields(fields.toSet())
             .build()
-        val request = KuksaValV1.GetRequest.newBuilder()
+        val request = GetRequest.newBuilder()
             .addEntries(entryRequest)
             .build()
 
@@ -103,20 +112,20 @@ internal class DataBrokerTransporter(
         vssPath: String,
         updatedDatapoint: Types.Datapoint,
         fields: Collection<Field>,
-    ): KuksaValV1.SetResponse {
+    ): SetResponse {
         val entryUpdates = fields.map { field ->
             val dataEntry = Types.DataEntry.newBuilder()
                 .setPath(vssPath)
                 .applyDatapoint(updatedDatapoint, field)
                 .build()
 
-            KuksaValV1.EntryUpdate.newBuilder()
+            EntryUpdate.newBuilder()
                 .setEntry(dataEntry)
                 .addFields(field)
                 .build()
         }
 
-        val request = KuksaValV1.SetRequest.newBuilder()
+        val request = SetRequest.newBuilder()
             .addAllUpdates(entryUpdates)
             .build()
 
@@ -130,44 +139,49 @@ internal class DataBrokerTransporter(
     }
 
     /**
-     * Sends a request to the DataBroker to subscribe to updates of the specified [vssPath] and [field].
-     * Returns a [DataBrokerSubscription] which can be used to register or unregister additional listeners or
-     * cancel / closing the subscription.
+     * Allows the provider to continuously send updates to the DataBroker.
+     * @param receiverStream the receiverStream which will be notified about the responses.
+     *
+     * @return the senderStream, which can be used to emit new requests.
+     */
+    fun streamedUpdate(
+        receiverStream: StreamObserver<KuksaValV1.StreamedUpdateResponse>,
+    ): StreamObserver<KuksaValV1.StreamedUpdateRequest> {
+        return VALGrpc.newStub(managedChannel)
+            .withAuthenticationInterceptor(jsonWebToken)
+            .streamedUpdate(receiverStream)
+    }
+
+    /**
+     * Sends a request to the DataBroker to subscribe to updates of the specified [vssPath] and [fields].
+     * Returns a [Context.CancellableContext] which can be used to cancel the subscription.
      *
      * @throws DataBrokerException in case the connection to the DataBroker is no longer active
      */
     fun subscribe(
         vssPath: String,
-        field: Field,
-    ): DataBrokerSubscription {
-        val subscribeEntry = KuksaValV1.SubscribeEntry.newBuilder()
+        fields: List<Field>,
+        vssPathListener: VssPathListener,
+    ): Context.CancellableContext {
+        val subscribeEntry = SubscribeEntry.newBuilder()
             .setPath(vssPath)
-            .addFields(field)
+            .addAllFields(fields)
             .build()
 
-        val request = KuksaValV1.SubscribeRequest.newBuilder()
+        val request = SubscribeRequest.newBuilder()
             .addEntries(subscribeEntry)
             .build()
 
         val currentContext = Context.current()
         val cancellableContext = currentContext.withCancellation()
 
-        val subscription = DataBrokerSubscription(vssPath, field, cancellableContext)
         val streamObserver = object : StreamObserver<SubscribeResponse> {
             override fun onNext(value: SubscribeResponse) {
-                subscription.listeners.forEach { observer ->
-                    observer.onEntryChanged(value.updatesList)
-                }
-
-                subscription.lastSubscribeResponse = value
+                vssPathListener.onEntryChanged(value.updatesList)
             }
 
-            override fun onError(throwable: Throwable?) {
-                subscription.listeners.forEach { observer ->
-                    throwable?.let { observer.onError(it) }
-                }
-
-                subscription.lastThrowable = throwable
+            override fun onError(throwable: Throwable) {
+                vssPathListener.onError(throwable)
             }
 
             override fun onCompleted() {
@@ -185,6 +199,34 @@ internal class DataBrokerTransporter(
             }
         }
 
-        return subscription
+        return cancellableContext
+    }
+
+    /**
+     * Subscribes to the specified [vssPath] using the specified [fields] and returns a flow with provides the
+     * corresponding updates.
+     *
+     * Throws a [DataBrokerException] in case the connection to the DataBroker is no longer active
+     */
+    fun subscribe(
+        vssPath: String,
+        fields: List<Field>,
+    ): Flow<SubscribeResponse> {
+        val subscribeEntry = SubscribeEntry.newBuilder()
+            .setPath(vssPath)
+            .addAllFields(fields)
+            .build()
+
+        val request = SubscribeRequest.newBuilder()
+            .addEntries(subscribeEntry)
+            .build()
+
+        return try {
+            coroutineStub
+                .withAuthenticationInterceptor(jsonWebToken)
+                .subscribe(request)
+        } catch (e: StatusException) {
+            throw DataBrokerException(e.message, e)
+        }
     }
 }

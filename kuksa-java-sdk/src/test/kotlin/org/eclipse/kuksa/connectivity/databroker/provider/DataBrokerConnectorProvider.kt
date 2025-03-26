@@ -28,23 +28,29 @@ import org.eclipse.kuksa.connectivity.authentication.JsonWebToken
 import org.eclipse.kuksa.connectivity.databroker.DATABROKER_HOST
 import org.eclipse.kuksa.connectivity.databroker.DATABROKER_TIMEOUT_SECONDS
 import org.eclipse.kuksa.connectivity.databroker.DATABROKER_TIMEOUT_UNIT
-import org.eclipse.kuksa.connectivity.databroker.docker.DEFAULT_PORT_INSECURE
-import org.eclipse.kuksa.connectivity.databroker.docker.DEFAULT_PORT_SECURE
-import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerConnectorV2
+import org.eclipse.kuksa.connectivity.databroker.DataBrokerConnector
+import org.eclipse.kuksa.connectivity.databroker.docker.KEY_ENV_DATABROKER_TIMEOUT
+import org.eclipse.kuksa.connectivity.databroker.docker.KEY_PROPERTY_DATABROKER_TIMEOUT
 import org.eclipse.kuksa.mocking.JwtType
 import org.eclipse.kuksa.model.TimeoutConfig
 import org.eclipse.kuksa.test.TestResourceFile
 import java.io.IOException
 import java.io.InputStream
 
-class DataBrokerConnectorV2Provider {
+private const val DEFAULT_DATABROKER_TIMEOUT = "10"
+
+class DataBrokerConnectorProvider {
     lateinit var managedChannel: ManagedChannel
+
+    private val timeout = System.getProperty(KEY_PROPERTY_DATABROKER_TIMEOUT)
+        ?: System.getenv(KEY_ENV_DATABROKER_TIMEOUT)
+        ?: DEFAULT_DATABROKER_TIMEOUT
 
     fun createInsecure(
         host: String = DATABROKER_HOST,
-        port: Int = DEFAULT_PORT_INSECURE,
+        port: Int,
         jwtFileStream: InputStream? = null,
-    ): DataBrokerConnectorV2 {
+    ): DataBrokerConnector {
         managedChannel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build()
 
         val jsonWebToken = jwtFileStream?.let {
@@ -52,21 +58,21 @@ class DataBrokerConnectorV2Provider {
             JsonWebToken(token)
         }
 
-        return DataBrokerConnectorV2(
+        return DataBrokerConnector(
             managedChannel,
             jsonWebToken,
         ).apply {
-            timeoutConfig = TimeoutConfig(DATABROKER_TIMEOUT_SECONDS, DATABROKER_TIMEOUT_UNIT)
+            timeoutConfig = TimeoutConfig(timeout.toLong(), DATABROKER_TIMEOUT_UNIT)
         }
     }
 
     fun createSecure(
         host: String = DATABROKER_HOST,
-        port: Int = DEFAULT_PORT_SECURE,
+        port: Int,
         overrideAuthority: String = "",
         rootCertFileStream: InputStream = TestResourceFile("tls/CA.pem").inputStream(),
         jwtFileStream: InputStream? = JwtType.READ_WRITE_ALL.asInputStream(),
-    ): DataBrokerConnectorV2 {
+    ): DataBrokerConnector {
         val tlsCredentials: ChannelCredentials
         try {
             tlsCredentials = TlsChannelCredentials.newBuilder()
@@ -92,7 +98,7 @@ class DataBrokerConnectorV2Provider {
             JsonWebToken(token)
         }
 
-        return DataBrokerConnectorV2(
+        return DataBrokerConnector(
             managedChannel,
             jsonWebToken,
         ).apply {

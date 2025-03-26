@@ -1,15 +1,21 @@
-/********************************************************************************
- * Copyright (c) 2022 Contributors to the Eclipse Foundation
+/*
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
- * See the NOTICE file(s) distributed with this work for additional
- * information regarding copyright ownership.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program and the accompanying materials are made available under the
- * terms of the Apache License 2.0 which is available at
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
- ********************************************************************************/
+ *
+ */
 
 syntax = "proto3";
 
@@ -25,9 +31,9 @@ import "kuksa/val/v1/types.proto";
 // Tokens (auth-token or auth-uuid) are sent as (GRPC / http2) metadata.
 //
 // The auth-token is a JWT compliant token as the examples found here:
-// https://github.com/eclipse/kuksa.val/tree/master/kuksa_certificates/jwt
+// https://github.com/eclipse-kuksa/kuksa-databroker/tree/main/certificates/jwt
 //
-// See also https://github.com/eclipse/kuksa.val/blob/master/doc/jwt.md
+// See also https://github.com/eclipse-kuksa/kuksa-databroker/blob/main/doc/authorization.md#jwt-access-token
 //
 // Upon reception of auth-token, server shall generate an auth-uuid in metadata
 // that the client can use instead of auth-token in subsequent calls.
@@ -38,6 +44,8 @@ service VAL {
 
   // Set entries
   rpc Set(SetRequest) returns (SetResponse);
+
+  rpc StreamedUpdate(stream StreamedUpdateRequest) returns (stream StreamedUpdateResponse);
 
   // Subscribe to a set of entries
   //
@@ -86,6 +94,15 @@ message SetRequest {
 // Global errors are specified in `error`.
 // Errors for individual entries are specified in `errors`.
 message SetResponse {
+  Error error                    = 1;
+  repeated DataEntryError errors = 2;
+}
+
+message StreamedUpdateRequest {
+  repeated EntryUpdate updates = 1;
+}
+
+message StreamedUpdateResponse {
   Error error                    = 1;
   repeated DataEntryError errors = 2;
 }

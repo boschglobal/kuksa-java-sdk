@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,15 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import org.eclipse.kuksa.connectivity.databroker.DATABROKER_TIMEOUT_SECONDS
 import java.time.Duration
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 private const val KEY_PROPERTY_DATABROKER_TAG = "databroker.tag"
 private const val KEY_ENV_DATABROKER_TAG = "DATABROKER_TAG"
 private const val DEFAULT_DATABROKER_TAG = "main"
+
+const val KEY_PROPERTY_DATABROKER_TIMEOUT = "databroker.timeout"
+const val KEY_ENV_DATABROKER_TIMEOUT = "DATABROKER_TIMEOUT"
+private const val DEFAULT_DATABROKER_TIMEOUT = "15"
 
 /**
  * Starts and stops the Databroker Docker Container. Per default the image with the master tag is pulled and started.
@@ -62,8 +67,9 @@ private const val DEFAULT_DATABROKER_TAG = "main"
  */
 abstract class DataBrokerDockerContainer(
     protected val containerName: String,
-    protected val port: Int,
 ) {
+    val port: Int = atomicPortNumber.getAndIncrement()
+
     protected open val hostConfig: HostConfig = HostConfig.newHostConfig()
         .withNetworkMode("host")
         .withAutoRemove(true)
@@ -79,6 +85,10 @@ abstract class DataBrokerDockerContainer(
     private val databrokerTag = System.getProperty(KEY_PROPERTY_DATABROKER_TAG)
         ?: System.getenv(KEY_ENV_DATABROKER_TAG)
         ?: DEFAULT_DATABROKER_TAG
+
+    private val timeout = System.getProperty(KEY_PROPERTY_DATABROKER_TIMEOUT)
+        ?: System.getenv(KEY_ENV_DATABROKER_TIMEOUT)
+        ?: DEFAULT_DATABROKER_TIMEOUT
 
     protected val dockerClient: DockerClient
 
@@ -97,8 +107,6 @@ abstract class DataBrokerDockerContainer(
     }
 
     fun start() {
-        stop()
-
         pullImage(databrokerTag)
         val databrokerContainer = createContainer(databrokerTag)
         startContainer(databrokerContainer.id)
@@ -123,7 +131,7 @@ abstract class DataBrokerDockerContainer(
         dockerClient.pullImageCmd(repository)
             .withTag(tag)
             .exec(PullImageResultCallback())
-            .awaitCompletion(30, TimeUnit.SECONDS)
+            .awaitCompletion(timeout.toLong(), TimeUnit.SECONDS)
     }
 
     protected abstract fun createContainer(tag: String): CreateContainerResponse
@@ -134,9 +142,13 @@ abstract class DataBrokerDockerContainer(
 
             dockerClient.waitContainerCmd(containerId)
                 .exec(WaitContainerResultCallback())
-                .awaitCompletion(5, TimeUnit.SECONDS)
+                .awaitCompletion(timeout.toLong(), TimeUnit.SECONDS)
         } catch (_: NotModifiedException) {
             // thrown when a container is already started
         }
+    }
+
+    companion object {
+        private val atomicPortNumber = AtomicInteger(55560)
     }
 }

@@ -17,7 +17,7 @@
  *
  */
 
-package org.eclipse.kuksa.connectivity.databroker.v2
+package org.eclipse.kuksa.connectivity.databroker
 
 import io.grpc.ConnectivityState
 import io.grpc.ManagedChannel
@@ -33,13 +33,12 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.first
-import org.eclipse.kuksa.connectivity.databroker.DataBrokerException
-import org.eclipse.kuksa.connectivity.databroker.DisconnectListener
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
+import org.eclipse.kuksa.connectivity.databroker.provider.DataBrokerConnectorProvider
+import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerInvokerV2
 import org.eclipse.kuksa.connectivity.databroker.v2.extensions.toSignalId
 import org.eclipse.kuksa.connectivity.databroker.v2.extensions.updateRandomFloatValue
-import org.eclipse.kuksa.connectivity.databroker.v2.provider.DataBrokerConnectorV2Provider
 import org.eclipse.kuksa.connectivity.databroker.v2.request.ActuateRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.FetchValueRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.FetchValuesRequestV2
@@ -72,12 +71,14 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
     }
 
     given("A successfully established connection to the DataBroker") {
-        val dataBrokerConnectorProvider = DataBrokerConnectorV2Provider()
-        val connector = dataBrokerConnectorProvider.createInsecure()
+        val dataBrokerConnectorProvider = DataBrokerConnectorProvider()
+        val connector = dataBrokerConnectorProvider.createInsecure(
+            port = databrokerContainer!!.port,
+        )
         val dataBrokerConnection = connector.connect()
 
         val dataBrokerTransporter =
-            DataBrokerTransporterV2(dataBrokerConnectorProvider.managedChannel)
+            DataBrokerInvokerV2(dataBrokerConnectorProvider.managedChannel)
 
         `when`("trying to fetch multiple values") {
             val signalIds = listOf(
@@ -91,7 +92,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             dataBrokerTransporter.publishValue(signalIds[1], randomFloat2)
 
             val request = FetchValuesRequestV2(signalIds)
-            val valuesResponse = dataBrokerConnection.fetchValues(request)
+            val valuesResponse = dataBrokerConnection.kuksaValV2.fetchValues(request)
 
             then("the values should contain the correct information") {
                 valuesResponse.dataPointsCount shouldBe 2
@@ -109,7 +110,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
 
                 val request = ActuateRequestV2(signalId, value)
                 val result = runCatching {
-                    dataBrokerConnection.actuate(request)
+                    dataBrokerConnection.kuksaValV2.actuate(request)
                 }
                 then("An Exception should be thrown") {
                     result.isFailure shouldBe true
@@ -134,7 +135,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
                     // unimplemented
                 }
             }
-            val requestStream = dataBrokerConnection.openProviderStream(responseStream)
+            val requestStream = dataBrokerConnection.kuksaValV2.openProviderStream(responseStream)
 
             val signalId = "Vehicle.Cabin.Seat.Row1.DriverSide.Heating".toSignalId()
 
@@ -151,7 +152,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
 
                 val request = ActuateRequestV2(signalId, value)
                 val result = runCatching {
-                    dataBrokerConnection.actuate(request)
+                    dataBrokerConnection.kuksaValV2.actuate(request)
                 }
                 then("No Exception should be thrown") {
                     result.isSuccess shouldBe true
@@ -168,7 +169,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
 
             val subscribeRequest = SubscribeRequestV2(listOf(vssPath))
             `when`("Subscribing to the VSS path") {
-                val responseFlow = dataBrokerConnection.subscribe(subscribeRequest)
+                val responseFlow = dataBrokerConnection.kuksaValV2.subscribe(subscribeRequest)
 
                 then("An initial update is sent") {
                     val subscribeResponse = responseFlow.first()
@@ -200,7 +201,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
 
                 and("When fetching it afterwards") {
                     val fetchRequest = FetchValueRequestV2(signalId)
-                    val response = dataBrokerConnection.fetchValue(fetchRequest)
+                    val response = dataBrokerConnection.kuksaValV2.fetchValue(fetchRequest)
 
                     then("The response contains the correctly set value") {
                         val dataPoint = response.dataPoint
@@ -218,7 +219,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
                 val datapoint = createRandomIntDatapoint()
                 val updateRequest = PublishValueRequestV2(signalId, datapoint)
                 val result = runCatching {
-                    dataBrokerConnection.publishValue(updateRequest)
+                    dataBrokerConnection.kuksaValV2.publishValue(updateRequest)
                 }
 
                 then("It should throw an Exception containing the Error INVALID_ARGUMENT") {
@@ -230,7 +231,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
 
                 and("Fetching it afterwards") {
                     val fetchRequest = FetchValueRequestV2(signalId)
-                    val getResponse = dataBrokerConnection.fetchValue(fetchRequest)
+                    val getResponse = dataBrokerConnection.kuksaValV2.fetchValue(fetchRequest)
 
                     then("The response still contains the previously set value") {
                         val dataPoint = getResponse.dataPoint
@@ -244,7 +245,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
         }
 
-        and("An INVALID VSS Path") {
+        and("A SubscribeRequest with an invalid VSS Path") {
             val invalidVssPath = "Vehicle.Some.Unknown.Path"
             val invalidSignalId = SignalID.newBuilder().setPath(invalidVssPath).build()
 
@@ -252,7 +253,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
                 val subscribeRequest = SubscribeRequestV2(listOf(invalidVssPath))
 
                 val result = runCatching {
-                    dataBrokerConnection.subscribe(subscribeRequest).first()
+                    dataBrokerConnection.kuksaValV2.subscribe(subscribeRequest).first()
                 }
 
                 then("A DataBrokerException with error message 'NOT_FOUND' is thrown") {
@@ -268,7 +269,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
                 val updateRequest = PublishValueRequestV2(invalidSignalId, datapoint)
 
                 val result = kotlin.runCatching {
-                    dataBrokerConnection.publishValue(updateRequest)
+                    dataBrokerConnection.kuksaValV2.publishValue(updateRequest)
                 }
 
                 then("It should fail with an errorCode 404 (path not found)") {
@@ -280,7 +281,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
                 val fetchRequest = FetchValueRequestV2(invalidSignalId)
 
                 val result = runCatching {
-                    dataBrokerConnection.fetchValue(fetchRequest)
+                    dataBrokerConnection.kuksaValV2.fetchValue(fetchRequest)
                 }
 
                 then("A DataBrokerException with error message 'NOT_FOUND' is thrown") {
@@ -288,6 +289,25 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
                     val exception = result.exceptionOrNull()!!
                     exception shouldBe instanceOf(DataBrokerException::class)
                     exception.message shouldContain "NOT_FOUND"
+                }
+            }
+        }
+
+        and("A SubscribeRequest with a negative bufferSize") {
+            val vssPath = "Vehicle.Speed"
+            val signalPaths = listOf(vssPath)
+            val subscribeRequest = SubscribeRequestV2(signalPaths, -128)
+
+            val result = runCatching {
+                dataBrokerConnection.kuksaValV2.subscribe(subscribeRequest)
+            }
+
+            then("It should throw a DataBrokerException") {
+                result.onFailure { e ->
+                    e shouldBe instanceOf(DataBrokerException::class)
+                    e.message shouldContain "INVALID_ARGUMENT"
+                }.onSuccess {
+                    fail("Using a negative bufferSize should not succeed.")
                 }
             }
         }
@@ -311,7 +331,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
     given("A DataBrokerConnection with a mocked ManagedChannel") {
         val managedChannel = mockk<ManagedChannel>(relaxed = true)
         every { managedChannel.getState(any()) }.returns(ConnectivityState.READY)
-        val dataBrokerConnection = DataBrokerConnectionV2(managedChannel)
+        val dataBrokerConnection = DataBrokerConnection(managedChannel)
 
         `when`("Disconnect is called") {
             dataBrokerConnection.disconnect()

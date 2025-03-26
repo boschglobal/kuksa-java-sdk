@@ -29,9 +29,9 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
+import org.eclipse.kuksa.connectivity.databroker.provider.DataBrokerConnectorProvider
 import org.eclipse.kuksa.connectivity.databroker.v1.extensions.updateRandomFloatValue
 import org.eclipse.kuksa.connectivity.databroker.v1.listener.VssPathListener
-import org.eclipse.kuksa.connectivity.databroker.v1.provider.DataBrokerConnectorProvider
 import org.eclipse.kuksa.mocking.FriendlyVssPathListener
 import org.eclipse.kuksa.proto.v1.KuksaValV1
 import org.eclipse.kuksa.proto.v1.Types
@@ -58,11 +58,13 @@ class DataBrokerTransporterTest : BehaviorSpec({
 
     given("An active Connection to the DataBroker") {
         val dataBrokerConnectorProvider = DataBrokerConnectorProvider()
-        val connector = dataBrokerConnectorProvider.createInsecure()
+        val connector = dataBrokerConnectorProvider.createInsecure(
+            port = databrokerContainer!!.port,
+        )
         connector.connect()
 
         and("An Instance of DataBrokerTransporter") {
-            val classUnderTest = DataBrokerTransporter(dataBrokerConnectorProvider.managedChannel)
+            val classUnderTest = DataBrokerInvokerV1(dataBrokerConnectorProvider.managedChannel)
 
             and("Some VSS-related data") {
                 val vssPath = "Vehicle.ADAS.CruiseControl.SpeedSet"
@@ -118,10 +120,12 @@ class DataBrokerTransporterTest : BehaviorSpec({
                 }
 
                 `when`("Subscribing to the vssPath using FIELD_VALUE") {
-                    val subscription = classUnderTest.subscribe(vssPath, Types.Field.FIELD_VALUE)
-
                     val vssPathListener = mockk<VssPathListener>(relaxed = true)
-                    subscription.listeners.register(vssPathListener)
+                    classUnderTest.subscribe(
+                        vssPath,
+                        listOf(Types.Field.FIELD_VALUE),
+                        vssPathListener,
+                    )
 
                     and("The value of the vssPath is updated") {
                         classUnderTest.updateRandomFloatValue(vssPath)
@@ -135,13 +139,12 @@ class DataBrokerTransporterTest : BehaviorSpec({
                 }
 
                 `when`("Subscribing to an invalid vssPath") {
-                    val subscription = classUnderTest.subscribe(
-                        "Vehicle.Some.Invalid.Path",
-                        Types.Field.FIELD_VALUE,
-                    )
-
                     val vssPathListener = FriendlyVssPathListener()
-                    subscription.listeners.register(vssPathListener)
+                    classUnderTest.subscribe(
+                        "Vehicle.Some.Invalid.Path",
+                        listOf(Types.Field.FIELD_VALUE),
+                        vssPathListener,
+                    )
 
                     then("An Error should be triggered") {
                         eventually(eventuallyConfiguration) {
@@ -160,7 +163,7 @@ class DataBrokerTransporterTest : BehaviorSpec({
 
         `when`("Trying to instantiate the DataBrokerTransporter") {
             val result = kotlin.runCatching {
-                DataBrokerTransporter(inactiveManagedChannel)
+                DataBrokerInvokerV1(inactiveManagedChannel)
             }
 
             then("An IllegalStateException is thrown") {
