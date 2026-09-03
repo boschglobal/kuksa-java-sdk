@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2026 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.eclipse.kuksa.version.SemanticVersion
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_PATH_KEY
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
@@ -37,28 +36,21 @@ val semanticVersion = SemanticVersion(versionPath)
 version = semanticVersion.versionName
 group = "org.eclipse.kuksa"
 
+val javaVersion = JavaVersion.toVersion(libs.versions.jvmTarget.get())
+
+java {
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+}
+
 kotlin {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_11)
+        jvmTarget.set(JvmTarget.fromTarget(libs.versions.jvmTarget.get()))
     }
 }
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-
-    kotlin {
-        compilerOptions {
-            // https://youtrack.jetbrains.com/issue/KT-48678/Coroutine-debugger-disable-was-optimised-out-compiler-feature
-            // We don't want local variables to be optimized out while debugging into tests
-            freeCompilerArgs.add("-Xdebug")
-        }
-    }
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xdebug")
-    }
 }
 
 publish {
@@ -80,8 +72,8 @@ tasks.withType<DokkaTask>().configureEach {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 
     withJavadocJar() // needs to be called after tasks.register("javadocJar")
     withSourcesJar()

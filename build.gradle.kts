@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2026 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,6 +76,7 @@ subprojects {
     }
 
     // https://docs.gradle.org/current/userguide/dependency_locking.html
+    // update with: ./gradlew check --write-locks --update-locks '*:*' --no-configuration-cache
     dependencyLocking {
         lockAllConfigurations()
         lockFile = file("$projectDir/gradle.lockfile")

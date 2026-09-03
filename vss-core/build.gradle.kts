@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2026 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,14 +36,16 @@ val semanticVersion = SemanticVersion(versionPath)
 version = semanticVersion.versionName
 group = "org.eclipse.kuksa"
 
+val javaVersion = JavaVersion.toVersion(libs.versions.jvmTarget.get())
+
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_11)
+        jvmTarget.set(JvmTarget.fromTarget(libs.versions.jvmTarget.get()))
     }
 }
 
@@ -57,14 +59,6 @@ dependencies {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-
-    kotlin {
-        compilerOptions {
-            // https://youtrack.jetbrains.com/issue/KT-48678/Coroutine-debugger-disable-was-optimised-out-compiler-feature
-            // We don't want local variables to be optimized out while debugging into tests
-            freeCompilerArgs.add("-Xdebug")
-        }
-    }
 }
 
 publish {
@@ -74,6 +68,7 @@ publish {
 }
 
 tasks.register("javadocJar", Jar::class) {
+    description = "Generates a Javadoc jar from Dokka HTML output"
     dependsOn("dokkaHtml")
 
     val buildDir = layout.buildDirectory.get()
