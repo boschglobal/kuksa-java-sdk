@@ -103,9 +103,9 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
         }
 
-        `when`("no ActuationProvider exists for Vehicle.Cabin.Seat.Row1.DriverSide.Heating") {
-            `when`("trying to actuate Vehicle.Cabin.Seat.Row1.DriverSide.Heating") {
-                val signalId = "Vehicle.Cabin.Seat.Row1.DriverSide.Heating".toSignalId()
+        `when`("no ActuationProvider exists for Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
+            `when`("trying to actuate Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
+                val signalId = "Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling".toSignalId()
                 val value = Types.Value.newBuilder().setInt32(50).build()
 
                 val request = ActuateRequestV2(signalId, value)
@@ -121,7 +121,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
         }
 
-        `when`("an ActuationProvider exists for Vehicle.Cabin.Seat.Row1.DriverSide.Heating") {
+        `when`("an ActuationProvider exists for Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
             val responseStream = object : StreamObserver<OpenProviderStreamResponse> {
                 override fun onNext(value: OpenProviderStreamResponse) {
                     // unimplemented
@@ -137,7 +137,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
             val requestStream = dataBrokerConnection.kuksaValV2.openProviderStream(responseStream)
 
-            val signalId = "Vehicle.Cabin.Seat.Row1.DriverSide.Heating".toSignalId()
+            val signalId = "Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling".toSignalId()
 
             val provideActuationRequest = ProvideActuationRequest.newBuilder()
                 .addActuatorIdentifiers(signalId)
@@ -147,7 +147,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
                 .build()
             requestStream.onNext(openProviderStreamRequest)
 
-            `when`("trying to actuate Vehicle.Cabin.Seat.Row1.DriverSide.Heating") {
+            `when`("trying to actuate Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
                 val value = Types.Value.newBuilder().setInt32(50).build()
 
                 val request = ActuateRequestV2(signalId, value)

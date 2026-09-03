@@ -34,6 +34,7 @@ class InsecureDataBrokerDockerContainer(
             .withCmd(
                 "--port", "$port",
                 "--insecure",
+                "--vss", vssMount,
             )
             .exec()
     }

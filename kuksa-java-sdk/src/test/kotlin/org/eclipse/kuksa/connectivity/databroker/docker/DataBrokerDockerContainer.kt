@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2026 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,22 @@ import com.github.dockerjava.api.command.CreateContainerResponse
 import com.github.dockerjava.api.command.PullImageResultCallback
 import com.github.dockerjava.api.command.WaitContainerResultCallback
 import com.github.dockerjava.api.exception.NotModifiedException
+import com.github.dockerjava.api.model.AccessMode
+import com.github.dockerjava.api.model.Bind
 import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.api.model.HostConfig
 import com.github.dockerjava.api.model.InternetProtocol
 import com.github.dockerjava.api.model.PortBinding
 import com.github.dockerjava.api.model.Ports
+import com.github.dockerjava.api.model.Volume
 import com.github.dockerjava.core.DefaultDockerClientConfig
 import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import org.eclipse.kuksa.connectivity.databroker.DATABROKER_TIMEOUT_SECONDS
+import java.io.File
+import java.net.ServerSocket
 import java.time.Duration
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 
 private const val KEY_PROPERTY_DATABROKER_TAG = "databroker.tag"
 private const val KEY_ENV_DATABROKER_TAG = "DATABROKER_TAG"
@@ -44,6 +48,10 @@ private const val DEFAULT_DATABROKER_TAG = "main"
 const val KEY_PROPERTY_DATABROKER_TIMEOUT = "databroker.timeout"
 const val KEY_ENV_DATABROKER_TIMEOUT = "DATABROKER_TIMEOUT"
 private const val DEFAULT_DATABROKER_TIMEOUT = "15"
+
+private const val KEY_PROPERTY_DATABROKER_VSS = "databroker.vss"
+private const val KEY_ENV_DATABROKER_VSS = "DATABROKER_VSS"
+private const val DEFAULT_DATABROKER_VSS = "vss/vss_release_6.0.json"
 
 /**
  * Starts and stops the Databroker Docker Container. Per default the image with the master tag is pulled and started.
@@ -64,20 +72,41 @@ private const val DEFAULT_DATABROKER_TIMEOUT = "15"
  *
  * DATABROKER_TAG="0.4.1" ./gradlew clean build
  * ```
+ *
+ * The VSS spec file used to populate the databroker can be overridden via system property "databroker.vss" or
+ * environment variable "DATABROKER_VSS". The value must be a path to a VSS YAML or JSON file.
+ *```
+ * System Property:
+ * ./gradlew clean build -Ddatabroker.vss="/path/to/vss.yaml"
+ *
+ * Environment Variable:
+ * DATABROKER_VSS="/path/to/vss.yaml" ./gradlew clean build
+ * ```
  */
 abstract class DataBrokerDockerContainer(
     protected val containerName: String,
 ) {
-    val port: Int = atomicPortNumber.getAndIncrement()
+    val port: Int = findAvailablePort()
+
+    private val vssFilePath = System.getProperty(KEY_PROPERTY_DATABROKER_VSS)
+        ?: System.getenv(KEY_ENV_DATABROKER_VSS)
+        ?: DEFAULT_DATABROKER_VSS
+
+    private val vssFileName: String = File(vssFilePath).name
+    protected val vssDirectory: String = File(vssFilePath).canonicalFile.parent
+    protected val vssMountDirectory: String = "/vss"
+    protected val vssMount: String = "$vssMountDirectory/$vssFileName"
 
     protected open val hostConfig: HostConfig = HostConfig.newHostConfig()
-        .withNetworkMode("host")
         .withAutoRemove(true)
         .withPortBindings(
             PortBinding(
-                Ports.Binding("0.0.0.0", ""),
+                Ports.Binding("0.0.0.0", port.toString()),
                 ExposedPort(port, InternetProtocol.TCP),
             ),
+        )
+        .withBinds(
+            Bind(vssDirectory, Volume(vssMountDirectory), AccessMode.ro),
         )
 
     protected val repository = "ghcr.io/eclipse-kuksa/kuksa-databroker"
@@ -91,6 +120,8 @@ abstract class DataBrokerDockerContainer(
         ?: DEFAULT_DATABROKER_TIMEOUT
 
     protected val dockerClient: DockerClient
+
+    private var containerId: String? = null
 
     init {
         val config = DefaultDockerClientConfig.createDefaultConfigBuilder().build()
@@ -109,19 +140,15 @@ abstract class DataBrokerDockerContainer(
     fun start() {
         pullImage(databrokerTag)
         val databrokerContainer = createContainer(databrokerTag)
+        containerId = databrokerContainer.id
         startContainer(databrokerContainer.id)
     }
 
     fun stop() {
-        val databrokerNames = listOf(containerName)
-        val dockerContainers = dockerClient.listContainersCmd()
-            .withNameFilter(databrokerNames)
-            .exec()
-
-        dockerContainers.forEach { container ->
+        containerId?.let { id ->
             try {
-                dockerClient.stopContainerCmd(container.id).exec()
-            } catch (_: NotModifiedException) {
+                dockerClient.stopContainerCmd(id).exec()
+            } catch (_: Exception) {
                 // thrown when a container is already stopped
             }
         }
@@ -149,6 +176,8 @@ abstract class DataBrokerDockerContainer(
     }
 
     companion object {
-        private val atomicPortNumber = AtomicInteger(55560)
+        private fun findAvailablePort(): Int {
+            return ServerSocket(0).use { it.localPort }
+        }
     }
 }

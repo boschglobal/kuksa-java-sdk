@@ -39,6 +39,7 @@ class SecureDataBrokerDockerContainer(
 
     override val hostConfig: HostConfig = super.hostConfig
         .withBinds(
+            Bind(vssDirectory, Volume(vssMountDirectory), AccessMode.ro),
             Bind(tlsFolder, Volume(tlsMount), AccessMode.ro),
             Bind(authenticationFolder, Volume(authenticationMount), AccessMode.ro),
         )
@@ -53,6 +54,7 @@ class SecureDataBrokerDockerContainer(
                 "--tls-cert", "$tlsMount/Server.pem",
                 "--tls-private-key", "$tlsMount/Server.key",
                 "--jwt-public-key", "$authenticationMount/jwt.key.pub",
+                "--vss", vssMount,
             )
             .exec()
     }
