@@ -1,7 +1,7 @@
 [versions]
 androidGradlePlugin = "8.3.2" # Check with detekt table first: https://detekt.dev/docs/introduction/compatibility/
-detekt = "1.23.6"
-dockerJavaCore = "3.4.1"
+detekt = "1.23.8"
+dockerJavaCore = "3.7.1"
 dokka = "1.9.20"
 kotlin = "1.9.22"
 ktlint = "0.0" # Maintained inside ktlint.gradle.kts
@@ -9,9 +9,9 @@ grpc = "1.65.1"
 grpcKotlin = "1.4.1"
 protobufGradlePlugin = "0.9.4"
 protobuf = "3.25.3"
-kotest = "5.7.2"
-mockk = "1.13.7"
-kotlinxCoroutines = "1.7.3"
+kotest = "5.8.1"
+mockk = "1.13.10"
+kotlinxCoroutines = "1.8.1"
 jvmTarget = "11"
 
 [libraries]
