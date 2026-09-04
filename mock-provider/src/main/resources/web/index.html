@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuksa Generic Actuator Mock Provider - CLI &amp; Monitor UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
+
+    <!-- ZONE-HEADER -->
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+        <div class="flex items-center space-x-4">
+            <div class="h-10 w-10 rounded-lg bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <i class="fa-solid fa-server text-xl"></i>
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h1 class="text-lg font-bold text-white tracking-wide">KUKSA Generic Actuator Mock Provider</h1>
+                    <span id="stream-badge" class="px-2 py-0.5 text-xs font-semibold bg-slate-500/20 text-slate-400 border border-slate-500/30 rounded-full flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> CONNECTING
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400 font-mono">kuksa.val.v2 Provider Stream · Auto-Forward Passthrough &amp; Rule Engine</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="text-right">
+                <div class="text-xs text-slate-400">Target Databroker</div>
+                <div id="header-broker" class="text-xs font-mono text-slate-200">—</div>
+            </div>
+            <button id="btn-stop" class="px-3 py-1.5 text-xs font-medium bg-rose-600/20 text-rose-300 border border-rose-500/30 rounded hover:bg-rose-600/30 transition">
+                <i class="fa-solid fa-stop mr-1"></i> Stop Provider
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Body Container -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- ZONE-MAIN -->
+        <main class="flex-1 p-6 overflow-y-auto space-y-6">
+
+            <!-- Quick Stat Counters -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                    <div class="text-xs text-slate-400 font-medium">Claimed Signals</div>
+                    <div class="text-2xl font-bold text-emerald-400 mt-1 font-mono">
+                        <span id="stat-claimed">—</span>
+                        <span class="text-xs text-slate-500 font-normal"> Actuators</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 mt-1">VSS coverage claimed</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                    <div class="text-xs text-slate-400 font-medium">Actuations Processed</div>
+                    <div class="text-2xl font-bold text-sky-400 mt-1 font-mono" id="stat-actuations">—</div>
+                    <div class="text-[11px] text-slate-500 mt-1">Since provider start</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                    <div class="text-xs text-slate-400 font-medium">Default Passthrough Mode</div>
+                    <div class="text-2xl font-bold text-purple-400 mt-1" id="stat-mode">—</div>
+                    <div class="text-[11px] text-slate-500 mt-1">No rule needed for new signals</div>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                    <div class="text-xs text-slate-400 font-medium">Explicit Custom Rules</div>
+                    <div class="text-2xl font-bold text-amber-400 mt-1 font-mono">
+                        <span id="stat-rules">—</span>
+                        <span class="text-xs text-slate-500 font-normal"> Active</span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 mt-1">Ramp &amp; Toggle behaviors</div>
+                </div>
+            </div>
+
+            <!-- Terminal Stream Live View -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[400px]">
+                <div class="bg-slate-950 px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
+                        <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                        <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+                        <span class="text-xs font-mono text-slate-400 ml-2">mock-provider-stdout --live</span>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <label class="flex items-center gap-1.5 text-slate-500 cursor-pointer select-none">
+                            <input type="checkbox" id="chk-autoscroll" checked class="rounded bg-slate-950 border-slate-700 text-emerald-500 focus:ring-0">
+                            Auto-scroll
+                        </label>
+                        <button id="btn-clear" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700">Clear</button>
+                    </div>
+                </div>
+                <div id="terminal" class="p-4 font-mono text-xs overflow-y-auto space-y-1.5 flex-1 bg-slate-950 text-slate-300">
+                    <p class="text-slate-600">Connecting to mock-provider stream…</p>
+                </div>
+            </div>
+
+            <!-- Claimed Signals Explorer & Filter -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wider">Claimed Actuators Registry</h2>
+                    <div class="flex items-center space-x-2">
+                        <input id="filter-input" type="text" placeholder="Filter signal path…"
+                               class="bg-slate-950 border border-slate-700 rounded px-3 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-64" />
+                        <span id="filter-count" class="text-xs text-slate-400">Loading…</span>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-950 text-slate-400 border-b border-slate-800 font-mono">
+                            <tr>
+                                <th class="p-2.5">Actuator Path</th>
+                                <th class="p-2.5">Handling Strategy</th>
+                                <th class="p-2.5">Target Datapoint</th>
+                                <th class="p-2.5">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="actuator-tbody" class="divide-y divide-slate-800/60 font-mono">
+                            <tr><td colspan="4" class="p-4 text-center text-slate-500">Loading actuator registry…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- ZONE-SIDEBAR -->
+        <aside class="w-80 bg-slate-900 border-l border-slate-800 p-6 overflow-y-auto space-y-6">
+            <div>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Connection Info</h3>
+                <div class="space-y-3 text-xs">
+                    <div>
+                        <label class="text-slate-500 block mb-0.5">Databroker Host</label>
+                        <div id="info-host" class="font-mono text-slate-200 bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5">—</div>
+                    </div>
+                    <div>
+                        <label class="text-slate-500 block mb-0.5">Databroker Port</label>
+                        <div id="info-port" class="font-mono text-slate-200 bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5">—</div>
+                    </div>
+                    <div>
+                        <label class="text-slate-500 block mb-0.5">Provider Mode</label>
+                        <div id="info-mode" class="font-mono text-emerald-400 bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5">—</div>
+                    </div>
+                    <div>
+                        <label class="text-slate-500 block mb-0.5">Stream Status</label>
+                        <div id="info-stream" class="font-mono text-slate-400 bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">CLI Quick Launch</h3>
+                <div class="bg-slate-950 border border-slate-800 rounded p-2.5 font-mono text-[11px] text-slate-300 overflow-x-auto select-all">
+                    ./gradlew :mock-provider:run --args="--generic --host localhost --port 55556 --web-port 8080"
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">SSE Connection</h3>
+                <div class="text-xs space-y-1">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Status</span>
+                        <span id="sse-status" class="text-slate-400 font-mono">—</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Events received</span>
+                        <span id="sse-count" class="text-slate-400 font-mono">0</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- ZONE-FOOTER -->
+    <footer class="bg-slate-900 border-t border-slate-800 px-6 py-3 flex items-center justify-between text-xs text-slate-400">
+        <div class="flex items-center space-x-4">
+            <span id="footer-stream" class="flex items-center gap-1.5">
+                <i class="fa-solid fa-circle text-[8px] text-slate-500"></i> Initializing
+            </span>
+            <span>·</span>
+            <span>Claimed: <strong id="footer-claimed" class="text-white">—</strong></span>
+            <span>·</span>
+            <span>Mode: <strong id="footer-mode" class="text-emerald-400">—</strong></span>
+        </div>
+        <div class="font-mono text-slate-500">
+            Kuksa Val V2 · MockProvider v1.1.0
+        </div>
+    </footer>
+
+<script>
+(function () {
+    'use strict';
+
+    let sseEventCount = 0;
+    let autoScroll = true;
+    let eventSource = null;
+    let reconnectTimer = null;
+
+    const terminal = document.getElementById('terminal');
+    const actuatorTbody = document.getElementById('actuator-tbody');
+    const filterInput = document.getElementById('filter-input');
+
+    // ── State polling ──────────────────────────────────────────────────────────
+
+    function applyState(data) {
+        setText('stat-claimed', data.claimedSignals);
+        setText('stat-actuations', data.actuationsProcessed.toLocaleString());
+        setText('stat-mode', data.mode || '—');
+        setText('stat-rules', data.customRulesCount);
+        setText('header-broker', `${data.host}:${data.port} (plaintext)`);
+        setText('info-host', data.host);
+        setText('info-port', data.port);
+        setText('info-mode', data.mode || '—');
+        setText('footer-claimed', data.claimedSignals);
+        setText('footer-mode', data.mode || '—');
+
+        const streamEl = document.getElementById('info-stream');
+        const badge = document.getElementById('stream-badge');
+        const footerStream = document.getElementById('footer-stream');
+
+        if (data.streamActive) {
+            streamEl.textContent = 'Active';
+            streamEl.className = 'font-mono text-emerald-400 bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5';
+            badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> STREAM ACTIVE';
+            badge.className = 'px-2 py-0.5 text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center gap-1';
+            footerStream.innerHTML = '<i class="fa-solid fa-circle text-[8px] text-emerald-400"></i> gRPC Stream Ready';
+        } else {
+            streamEl.textContent = 'Pending';
+            streamEl.className = 'font-mono text-amber-400 bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5';
+        }
+    }
+
+    async function fetchState() {
+        try {
+            const resp = await fetch('/api/state');
+            if (resp.ok) applyState(await resp.json());
+        } catch (_) { /* silently retry */ }
+    }
+
+    // ── Actuator table ─────────────────────────────────────────────────────────
+
+    function strategyBadge(entry) {
+        if (entry.isCustomRule) {
+            return `<span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">${esc(entry.strategy)}</span>`;
+        }
+        return `<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${esc(entry.strategy)}</span>`;
+    }
+
+    async function fetchActuators(filter) {
+        try {
+            const url = filter ? `/api/actuators?filter=${encodeURIComponent(filter)}` : '/api/actuators';
+            const resp = await fetch(url);
+            if (!resp.ok) return;
+            const data = await resp.json();
+            setText('filter-count', `Showing ${data.filtered} of ${data.total}`);
+
+            if (data.items.length === 0) {
+                actuatorTbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500">No matching actuators found.</td></tr>';
+                return;
+            }
+
+            actuatorTbody.innerHTML = data.items.map(a => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="p-2.5 text-white font-semibold">${esc(a.path)}</td>
+                    <td class="p-2.5">${strategyBadge(a)}</td>
+                    <td class="p-2.5 text-slate-300">${esc(a.targetPath)}</td>
+                    <td class="p-2.5 text-emerald-400"><i class="fa-solid fa-circle-check mr-1"></i> Claimed &amp; Ready</td>
+                </tr>`).join('');
+        } catch (_) { /* silently retry */ }
+    }
+
+    // ── Terminal rendering ─────────────────────────────────────────────────────
+
+    function renderLogEntry(entry) {
+        const ts = `<span class="text-slate-500">[${esc(entry.timestamp)}]</span>`;
+        const d = entry.details || {};
+
+        if (entry.level === 'ACTUATE' && Object.keys(d).length > 0) {
+            return `<div class="p-2 rounded bg-slate-900/80 border border-slate-800 space-y-1">
+                <p class="text-sky-400 font-semibold">${ts} [ACTUATE REQ] ${esc(entry.message)}</p>
+                ${d.value   ? `<p class="text-slate-300">  ├─ Value: <span class="text-amber-300 font-bold">${esc(d.value)}</span></p>` : ''}
+                ${d.rule    ? `<p class="text-slate-300">  ├─ Matching Rule: <span class="text-purple-300 font-semibold">${esc(d.rule)}</span></p>` : ''}
+                ${d.ack     ? `<p class="text-slate-300">  └─ Ack: <span class="text-emerald-400">${esc(d.ack)}</span></p>` : ''}
+            </div>`;
+        }
+
+        if (entry.level === 'SUCCESS') {
+            return `<p class="text-emerald-300 font-semibold">${ts} ${esc(entry.message)}</p>`;
+        }
+        if (entry.level === 'ERROR') {
+            return `<p class="text-rose-400">${ts} [ERROR] ${esc(entry.message)}</p>`;
+        }
+
+        const colorClass = entry.level === 'INFO' ? 'text-slate-300' : 'text-slate-400';
+        return `<p class="${colorClass}">${ts} [${esc(entry.level)}] ${esc(entry.message)}</p>`;
+    }
+
+    function appendToTerminal(entry) {
+        const div = document.createElement('div');
+        div.innerHTML = renderLogEntry(entry);
+        terminal.appendChild(div.firstElementChild || div);
+        // Limit DOM size to last 300 entries
+        while (terminal.children.length > 300) terminal.removeChild(terminal.firstChild);
+        if (autoScroll) terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // ── SSE connection ─────────────────────────────────────────────────────────
+
+    function connectSse() {
+        if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+        if (eventSource) { eventSource.close(); }
+
+        setText('sse-status', 'Connecting…');
+        eventSource = new EventSource('/api/logs/stream');
+
+        eventSource.onopen = () => {
+            setText('sse-status', 'Connected');
+        };
+
+        eventSource.onmessage = (e) => {
+            try {
+                const entry = JSON.parse(e.data);
+                appendToTerminal(entry);
+                sseEventCount++;
+                setText('sse-count', sseEventCount);
+            } catch (_) { /* malformed event */ }
+        };
+
+        eventSource.onerror = () => {
+            setText('sse-status', 'Reconnecting…');
+            eventSource.close();
+            reconnectTimer = setTimeout(connectSse, 3000);
+        };
+    }
+
+    // ── Stop button ────────────────────────────────────────────────────────────
+
+    document.getElementById('btn-stop').addEventListener('click', async () => {
+        if (!confirm('Stop the mock provider process?')) return;
+        try {
+            await fetch('/api/control/stop', { method: 'POST' });
+            document.getElementById('btn-stop').textContent = 'Stopping…';
+            document.getElementById('btn-stop').disabled = true;
+        } catch (_) { /* ignore */ }
+    });
+
+    // ── Clear terminal ─────────────────────────────────────────────────────────
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+        terminal.innerHTML = '';
+        sseEventCount = 0;
+        setText('sse-count', 0);
+    });
+
+    // ── Auto-scroll checkbox ───────────────────────────────────────────────────
+
+    document.getElementById('chk-autoscroll').addEventListener('change', (e) => {
+        autoScroll = e.target.checked;
+    });
+
+    // ── Filter input (debounced) ───────────────────────────────────────────────
+
+    let filterTimer = null;
+    filterInput.addEventListener('input', () => {
+        clearTimeout(filterTimer);
+        filterTimer = setTimeout(() => fetchActuators(filterInput.value.trim()), 250);
+    });
+
+    // ── Utility ────────────────────────────────────────────────────────────────
+
+    function setText(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val ?? '—';
+    }
+
+    function esc(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // ── Boot ───────────────────────────────────────────────────────────────────
+
+    fetchState();
+    fetchActuators('');
+    connectSse();
+
+    setInterval(fetchState, 2000);
+    setInterval(() => fetchActuators(filterInput.value.trim()), 5000);
+
+})();
+</script>
+</body>
+</html>

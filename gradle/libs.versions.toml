@@ -12,6 +12,8 @@ protobuf = "4.36.1"
 kotest = "6.2.4"
 mockk = "1.14.11"
 kotlinxCoroutines = "1.11.0"
+kotlinxSerialization = "1.6.3"
+kaml = "0.58.0"
 jvmTarget = "17"
 
 [libraries]
@@ -26,6 +28,9 @@ protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-
 
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kaml = { group = "com.charleskorn.kaml", name = "kaml", version.ref = "kaml" }
 
 # build specific libraries
 kotest = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }
