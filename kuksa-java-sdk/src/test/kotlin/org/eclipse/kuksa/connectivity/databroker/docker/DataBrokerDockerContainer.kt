@@ -37,6 +37,7 @@ import com.github.dockerjava.core.DockerClientImpl
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient
 import org.eclipse.kuksa.connectivity.databroker.DATABROKER_TIMEOUT_SECONDS
 import java.io.File
+import java.io.FileNotFoundException
 import java.net.ServerSocket
 import java.time.Duration
 import java.util.concurrent.TimeUnit
@@ -92,8 +93,9 @@ abstract class DataBrokerDockerContainer(
         ?: System.getenv(KEY_ENV_DATABROKER_VSS)
         ?: DEFAULT_DATABROKER_VSS
 
-    private val vssFileName: String = File(vssFilePath).name
-    protected val vssDirectory: String = File(vssFilePath).canonicalFile.parent
+    private val resolvedVssFile: File = resolveVssFile(vssFilePath)
+    private val vssFileName: String = resolvedVssFile.name
+    protected val vssDirectory: String = resolvedVssFile.parent
     protected val vssMountDirectory: String = "/vss"
     protected val vssMount: String = "$vssMountDirectory/$vssFileName"
 
@@ -176,8 +178,30 @@ abstract class DataBrokerDockerContainer(
     }
 
     companion object {
-        private fun findAvailablePort(): Int {
-            return ServerSocket(0).use { it.localPort }
+        internal fun findAvailablePort(): Int {
+            return ServerSocket(0).apply {
+                reuseAddress = true
+            }.use { it.localPort }
         }
     }
+}
+
+internal fun resolveVssFile(rawPath: String, maxParentTraversals: Int = 5): File {
+    val initialFile = File(rawPath)
+    if (initialFile.exists()) {
+        return initialFile.canonicalFile
+    }
+
+    var currentDir = File(".").canonicalFile
+    repeat(maxParentTraversals) {
+        val candidate = File(currentDir, rawPath)
+        if (candidate.exists()) {
+            return candidate.canonicalFile
+        }
+        currentDir = currentDir.parentFile ?: return@repeat
+    }
+
+    throw FileNotFoundException(
+        "Could not resolve VSS file '$rawPath' from working directory '${File(".").canonicalPath}'",
+    )
 }
