@@ -24,7 +24,7 @@ import org.eclipse.kuksa.proto.v2.Types.SignalID
 
 /**
  * Used for publish value requests with
- * [org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection.kuksaValV2.publishValue].
+ * [org.eclipse.kuksa.connectivity.databroker.v2.KuksaValV2Protocol.publishValue].
  */
 data class PublishValueRequestV2(val signalId: SignalID, val datapoint: Types.Datapoint) {
     companion object {

@@ -22,7 +22,7 @@ package org.eclipse.kuksa.connectivity.databroker.v1.request
 import org.eclipse.kuksa.proto.v1.Types
 
 /**
- * Used for subscribe requests with [org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection.subscribe].
+ * Used for subscribe requests with [org.eclipse.kuksa.connectivity.databroker.v1.KuksaValV1Protocol.subscribe].
  */
 open class SubscribeRequest @JvmOverloads constructor(
     override val vssPath: String,

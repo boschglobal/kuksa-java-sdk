@@ -24,7 +24,7 @@ import org.eclipse.kuksa.vsscore.model.VssNode
 
 /**
  * Used for update requests with a generated [VssNode] model and
- * [org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection.update].
+ * [org.eclipse.kuksa.connectivity.databroker.v1.KuksaValV1Protocol.update].
  */
 class VssNodeUpdateRequest<T : VssNode> @JvmOverloads constructor(
     override val vssNode: T,

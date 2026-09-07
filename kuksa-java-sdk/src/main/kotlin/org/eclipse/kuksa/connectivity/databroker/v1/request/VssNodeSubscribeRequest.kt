@@ -24,7 +24,7 @@ import org.eclipse.kuksa.vsscore.model.VssNode
 
 /**
  * Used for subscribe requests with a generated [VssNode] model and
- * [org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection.subscribe].
+ * [org.eclipse.kuksa.connectivity.databroker.v1.KuksaValV1Protocol.subscribe].
  */
 class VssNodeSubscribeRequest<T : VssNode> @JvmOverloads constructor(
     override val vssNode: T,

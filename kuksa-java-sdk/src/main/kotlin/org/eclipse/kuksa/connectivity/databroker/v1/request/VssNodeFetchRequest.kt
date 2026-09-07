@@ -24,7 +24,7 @@ import org.eclipse.kuksa.vsscore.model.VssNode
 
 /**
  * Used for fetch requests with a generated [VssNode] model and
- * [org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection.fetch].
+ * [org.eclipse.kuksa.connectivity.databroker.v1.KuksaValV1Protocol.fetch].
  */
 class VssNodeFetchRequest<T : VssNode> @JvmOverloads constructor(
     override val vssNode: T,
