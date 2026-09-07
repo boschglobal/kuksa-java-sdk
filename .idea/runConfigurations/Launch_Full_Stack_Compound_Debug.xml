@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Launch Full Stack (Compound) - Debug" type="CompoundRunConfigurationType">
+    <toRun name="Start Kuksa Databroker (Docker)" type="docker-deploy" />
+    <toRun name="Debug Mock Provider" type="GradleRunConfiguration" />
+    <toRun name="Run Kuksa Java TestApp" type="GradleRunConfiguration" />
+    <method v="2" />
+  </configuration>
+</component>

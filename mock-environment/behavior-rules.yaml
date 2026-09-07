@@ -1,0 +1,33 @@
+# Behavior rules for Mock Provider
+# Note: Any actuator NOT explicitly listed here will automatically have its target value
+# directly reflected to its current value without requiring manual configuration.
+rules:
+  # Ramping speed simulation on cruise control set
+  - actuator: "Vehicle.ADAS.CruiseControl.SpeedSet"
+    sensor:   "Vehicle.Speed"
+    delay_ms: 500
+    transform: ramp
+
+  - actuator: "Vehicle.ADAS.ABS.IsEnabled"
+    sensor:   "Vehicle.ADAS.ABS.IsEngaged"
+    delay_ms: 0
+    transform: direct
+
+  - actuator: "Vehicle.Body.Lights.Beam.High.IsOn"
+    sensor:   "Vehicle.Body.Lights.Beam.High.IsActive"
+    delay_ms: 0
+    transform: direct
+
+  - actuator: "Vehicle.Powertrain.Transmission.SelectedGear"
+    sensor:   "Vehicle.Powertrain.Transmission.CurrentGear"
+    delay_ms: 300
+    transform: direct
+
+  - actuator: "Vehicle.ADAS.CruiseControl.IsActive"
+    delay_ms: 0
+    transform: toggle
+
+  # Wildcard pattern for all window positions (applies 200ms transition to any window)
+  - actuator: "Vehicle.Cabin.Door.**.Window.Position"
+    delay_ms: 200
+    transform: direct

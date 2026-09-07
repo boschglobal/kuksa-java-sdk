@@ -28,7 +28,7 @@ import org.eclipse.kuksa.test.TestResourceFile
 
 // tls enabled, authentication enabled
 class SecureDataBrokerDockerContainer(
-    containerName: String = "databroker_test_secure",
+    containerName: String = "kuksa_java_sdk_databroker_test_secure",
 ) : DataBrokerDockerContainer(containerName) {
 
     private val authenticationFolder = TestResourceFile("authentication").toString()

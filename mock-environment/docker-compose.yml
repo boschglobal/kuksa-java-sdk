@@ -1,0 +1,26 @@
+name: kuksa-java-sdk-environment
+
+services:
+  databroker:
+    image: ghcr.io/eclipse-kuksa/kuksa-databroker:main
+    container_name: kuksa-java-sdk-databroker
+    ports:
+      - "55556:55556"
+    volumes:
+      - ../vss:/vss:ro
+    command: ["--port", "55556", "--insecure", "--vss", "/vss/${VSS_FILE:-vss_rel_6.0.json}"]
+    restart: unless-stopped
+
+  mock-provider:
+    build:
+      context: ..
+      dockerfile: mock-provider/Dockerfile
+    container_name: kuksa-java-sdk-mock-provider
+    ports:
+      - "8090:8080"
+    depends_on:
+      - databroker
+    command: ["--host", "databroker", "--port", "55556", "--web-port", "8080", "--vss-file", "/vss/${VSS_FILE:-vss_rel_6.0.json}"]
+    volumes:
+      - ../vss:/vss:ro
+    restart: unless-stopped

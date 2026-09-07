@@ -23,7 +23,8 @@ stdout
 
 # IntelliJ
 *.iml
-.idea/
+.idea/*
+!.idea/runConfigurations/
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
