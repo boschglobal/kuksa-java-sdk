@@ -22,7 +22,6 @@ import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_NAME
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_PATH_KEY
 import java.nio.file.FileVisitResult
 import java.nio.file.Path
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.bufferedWriter
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
@@ -69,7 +68,7 @@ subprojects {
     // see: https://kotest.io/docs/framework/tags.html#gradle
     tasks.withType<Test> {
         val systemPropertiesMap = HashMap<String, Any>()
-        System.getProperties().forEach { key, value ->
+        System.getProperties().forEach { (key, value) ->
             systemPropertiesMap[key.toString()] = value.toString()
         }
         systemProperties = systemPropertiesMap
@@ -83,6 +82,7 @@ subprojects {
     }
 }
 
+// update with: ./gradlew resolveAndLockAll --write-locks --update-locks '*:*' --no-configuration-cache
 tasks.register("resolveAndLockAll") {
     group = "dependencies"
     description = "Resolves and locks all dependencies for all subprojects."
@@ -101,8 +101,8 @@ tasks.register("resolveAndLockAll") {
     }
 }
 
-@OptIn(ExperimentalPathApi::class)
 tasks.register("mergeDashFiles") {
+    description = "Merges all dash files from subprojects into a single dash file in the build directory."
     group = "oss"
 
     dependsOn(
@@ -151,7 +151,8 @@ subprojects {
     }
 }
 
-tasks.create("jacocoRootReport", JacocoReport::class.java) {
+tasks.register("jacocoRootReport", JacocoReport::class.java) {
+    description = "Generates a Jacoco coverage report for all subprojects."
     group = "report"
 
     reports {
