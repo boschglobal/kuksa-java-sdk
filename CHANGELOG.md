@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.1](https://github.com/eclipse-kuksa/kuksa-java-sdk/compare/release/release/v0.4.0...release/v0.4.1) (2026-09-07)
+
+### Documentation
+
+* Add AI Usage Notice ([03169d1](https://github.com/eclipse-kuksa/kuksa-java-sdk/commit/03169d1aefbb1d44493d070a6b13b4e31abb04de))
+
+
+### Refactoring
+
+* Dependency Updates to latest versions
+* Set Gradle Wrapper Version to 9.7.1 ([3bfc142](https://github.com/eclipse-kuksa/kuksa-java-sdk/commit/3bfc142cca21e033dd0814ddb6115fb400525731))
+* Set minimum Java Version to 17
+
 ## [0.4.0](https://github.com/eclipse-kuksa/kuksa-java-sdk/compare/release/release/v0.3.2...release/v0.4.0) (2025-03-26)
 
 ### Features
