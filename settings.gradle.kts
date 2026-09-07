@@ -56,4 +56,6 @@ include(":vss-core")
 include(":test-core")
 include(":samples")
 include(":mock-provider")
-include(":kuksa-java-testapp")
+if (System.getenv("DOCKER_BUILD") != "true") {
+    include(":kuksa-java-testapp")
+}
