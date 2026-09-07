@@ -76,10 +76,28 @@ subprojects {
     }
 
     // https://docs.gradle.org/current/userguide/dependency_locking.html
-    // update with: ./gradlew check --write-locks --update-locks '*:*' --no-configuration-cache
+    // update with: ./gradlew resolveAndLockAll --write-locks --update-locks '*:*' --no-configuration-cache
     dependencyLocking {
         lockAllConfigurations()
         lockFile = file("$projectDir/gradle.lockfile")
+    }
+}
+
+tasks.register("resolveAndLockAll") {
+    group = "dependencies"
+    description = "Resolves and locks all dependencies for all subprojects."
+    notCompatibleWithConfigurationCache("Filters configurations at execution time")
+    doFirst {
+        require(gradle.startParameter.isWriteDependencyLocks) {
+            "$path must be run with --write-locks"
+        }
+    }
+    doLast {
+        allprojects.forEach { proj ->
+            proj.configurations
+                .filter { it.isCanBeResolved }
+                .forEach { it.resolve() }
+        }
     }
 }
 
