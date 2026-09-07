@@ -21,7 +21,6 @@
 
 import org.eclipse.kuksa.version.SemanticVersion
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_PATH_KEY
-import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
@@ -69,15 +68,11 @@ publish {
 
 tasks.register("javadocJar", Jar::class) {
     description = "Generates a Javadoc jar from Dokka HTML output"
-    dependsOn("dokkaHtml")
+    dependsOn("dokkaGeneratePublicationHtml")
 
     val buildDir = layout.buildDirectory.get()
     from("$buildDir/dokka/html")
     archiveClassifier.set("javadoc")
-}
-
-tasks.withType<DokkaTask>().configureEach {
-    notCompatibleWithConfigurationCache("https://github.com/Kotlin/dokka/issues/2231")
 }
 
 java {
