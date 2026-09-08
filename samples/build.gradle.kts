@@ -26,6 +26,10 @@ plugins {
 
 val javaVersion = JavaVersion.toVersion(libs.versions.jvmTarget.get())
 
+tasks.withType<Test>().configureEach {
+    failOnNoDiscoveredTests = false
+}
+
 java {
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
