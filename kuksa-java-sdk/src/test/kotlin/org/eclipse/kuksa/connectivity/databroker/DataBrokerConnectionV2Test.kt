@@ -19,8 +19,6 @@
 
 package org.eclipse.kuksa.connectivity.databroker
 
-import io.grpc.ConnectivityState
-import io.grpc.ManagedChannel
 import io.grpc.StatusException
 import io.grpc.stub.StreamObserver
 import io.kotest.assertions.fail
@@ -29,14 +27,12 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.instanceOf
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.first
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.provider.DataBrokerConnectorProvider
-import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerInvokerV2
 import org.eclipse.kuksa.connectivity.databroker.v2.extensions.toSignalId
 import org.eclipse.kuksa.connectivity.databroker.v2.extensions.updateRandomFloatValue
 import org.eclipse.kuksa.connectivity.databroker.v2.request.ActuateRequestV2
@@ -77,9 +73,6 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
         )
         val dataBrokerConnection = connector.connect()
 
-        val dataBrokerTransporter =
-            DataBrokerInvokerV2(dataBrokerConnectorProvider.managedChannel)
-
         `when`("trying to fetch multiple values") {
             val signalIds = listOf(
                 "Vehicle.Acceleration.Longitudinal".toSignalId(),
@@ -88,8 +81,8 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             val randomFloat1 = createRandomFloatDatapoint()
             val randomFloat2 = createRandomFloatDatapoint()
 
-            dataBrokerTransporter.publishValue(signalIds[0], randomFloat1)
-            dataBrokerTransporter.publishValue(signalIds[1], randomFloat2)
+            dataBrokerConnection.kuksaValV2.publishValue(PublishValueRequestV2(signalIds[0], randomFloat1))
+            dataBrokerConnection.kuksaValV2.publishValue(PublishValueRequestV2(signalIds[1], randomFloat2))
 
             val request = FetchValuesRequestV2(signalIds)
             val valuesResponse = dataBrokerConnection.kuksaValV2.fetchValues(request)
@@ -103,7 +96,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
         }
 
-        `when`("no ActuationProvider exists for Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
+        and("no ActuationProvider exists for Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
             `when`("trying to actuate Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
                 val signalId = "Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling".toSignalId()
                 val value = Types.Value.newBuilder().setInt32(50).build()
@@ -121,7 +114,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
         }
 
-        `when`("an ActuationProvider exists for Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
+        and("an ActuationProvider exists for Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
             val responseStream = object : StreamObserver<OpenProviderStreamResponse> {
                 override fun onNext(value: OpenProviderStreamResponse) {
                     // unimplemented
@@ -165,7 +158,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             val vssPath = "Vehicle.Acceleration.Lateral"
             val signalId = SignalID.newBuilder().setPath(vssPath).build()
 
-            val initialValue = dataBrokerTransporter.updateRandomFloatValue(vssPath)
+            val initialValue = dataBrokerConnection.kuksaValV2.updateRandomFloatValue(vssPath)
 
             val subscribeRequest = SubscribeRequestV2(listOf(vssPath))
             `when`("Subscribing to the VSS path") {
@@ -179,9 +172,9 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
                     subscribeResponse.entriesMap[vssPath]?.value?.float shouldBe initialValue
                 }
 
-                `when`("The observed VSS path changes") {
+                and("The observed VSS path changes") {
                     val randomFloatDatapoint = createRandomFloatDatapoint()
-                    dataBrokerTransporter.publishValue(signalId, randomFloatDatapoint)
+                    dataBrokerConnection.kuksaValV2.publishValue(PublishValueRequestV2(signalId, randomFloatDatapoint))
 
                     then("The #onEntryChanged callback is triggered with the new value") {
                         val subscribeResponse = responseFlow.first()
@@ -197,7 +190,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
 
             `when`("Updating the DataBroker property (VSS path) with a valid Datapoint") {
                 // make sure that the value is set and known to us
-                dataBrokerTransporter.publishValue(signalId, validDatapoint)
+                dataBrokerConnection.kuksaValV2.publishValue(PublishValueRequestV2(signalId, validDatapoint))
 
                 and("When fetching it afterwards") {
                     val fetchRequest = FetchValueRequestV2(signalId)
@@ -313,7 +306,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
         }
 
         // this test closes the connection, the connection can't be used afterward anymore
-        `when`("A DisconnectListener is registered successfully") {
+        and("A DisconnectListener is registered successfully") {
             val disconnectListener = mockk<DisconnectListener>(relaxed = true)
             val disconnectListeners = dataBrokerConnection.disconnectListeners
             disconnectListeners.register(disconnectListener)
@@ -327,19 +320,6 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
         }
         // connection is closed at this point
-    }
-    given("A DataBrokerConnection with a mocked ManagedChannel") {
-        val managedChannel = mockk<ManagedChannel>(relaxed = true)
-        every { managedChannel.getState(any()) }.returns(ConnectivityState.READY)
-        val dataBrokerConnection = DataBrokerConnection(managedChannel)
-
-        `when`("Disconnect is called") {
-            dataBrokerConnection.disconnect()
-
-            then("The Channel is shutDown") {
-                verify { managedChannel.shutdownNow() }
-            }
-        }
     }
 })
 

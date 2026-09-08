@@ -269,7 +269,7 @@ class DataBrokerConnectorAuthenticationTest : BehaviorSpec({
                 jwtFileStream = null,
             )
 
-            `when`("Trying to connect") {
+            and("Trying to connect") {
                 val connectionResult = runCatching {
                     dataBrokerConnector.connect()
                 }
