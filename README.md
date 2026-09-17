@@ -5,6 +5,13 @@
 
 [![SDK:main <-> Databroker:main](https://github.com/eclipse-kuksa/kuksa-java-sdk/actions/workflows/daily_integration_main.yaml/badge.svg)](https://github.com/eclipse-kuksa/kuksa-java-sdk/actions/workflows/daily_integration_main.yaml?query=branch%3Amain)
 
+> [!IMPORTANT]
+> **AI Usage Notice**
+>
+> This repository partially contains AI-generated code using GitHub Copilot Business.
+> This notice must remain attached to any reproduction of this repository.
+
+
 This is a Java SDK for the [KUKSA Vehicle Abstraction Layer](https://github.com/eclipse-kuksa/kuksa-databroker).
 
 ## Overview

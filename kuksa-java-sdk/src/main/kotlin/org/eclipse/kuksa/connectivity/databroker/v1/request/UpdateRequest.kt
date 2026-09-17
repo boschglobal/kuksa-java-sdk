@@ -23,7 +23,7 @@ import org.eclipse.kuksa.proto.v1.Types
 import org.eclipse.kuksa.proto.v1.Types.Datapoint
 
 /**
- * Used for update requests with [org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection.update].
+ * Used for update requests with [org.eclipse.kuksa.connectivity.databroker.v1.KuksaValV1Protocol.update].
  */
 open class UpdateRequest @JvmOverloads constructor(
     override val vssPath: String,

@@ -23,7 +23,7 @@ import org.eclipse.kuksa.proto.v2.Types.SignalID
 
 /**
  * Used for fetch values requests with
- * [org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection.kuksaValV2.fetchValues].
+ * [org.eclipse.kuksa.connectivity.databroker.v2.KuksaValV2Protocol.fetchValues].
  */
 data class FetchValuesRequestV2(val signalIds: List<SignalID>) {
     companion object {
