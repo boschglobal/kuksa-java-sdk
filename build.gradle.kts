@@ -48,8 +48,14 @@ plugins {
 nexusPublishing {
     repositories {
         sonatype {
-            username = System.getenv("ORG_OSSRH_USERNAME")
-            password = System.getenv("ORG_OSSRH_PASSWORD")
+            val releaseUri = uri("https://ossrh-staging-api.central.sonatype.com/service/local/")
+            nexusUrl.set(releaseUri)
+
+            val snapshotUri = uri("https://central.sonatype.com/repository/maven-snapshots/")
+            snapshotRepositoryUrl.set(snapshotUri)
+
+            username = System.getenv("SONATYPE_USERNAME")
+            password = System.getenv("SONATYPE_PASSWORD")
         }
     }
 }
