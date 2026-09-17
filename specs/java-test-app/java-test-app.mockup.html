@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kuksa Java SDK – Desktop Test App Wireframe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #e5e7eb; }
+    /* Desktop window chrome */
+    .window { border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,.25); overflow: hidden; }
+    .titlebar { background: #2d3748; color: #e2e8f0; display: flex; align-items: center; gap: 8px; padding: 8px 12px; user-select: none; }
+    .titlebar-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .tab-bar { display: flex; background: #1e293b; border-bottom: 1px solid #334155; }
+    .tab { padding: 8px 18px; font-size: 13px; cursor: pointer; border-right: 1px solid #334155; color: #94a3b8; }
+    .tab.active { background: #f8fafc; color: #1e40af; font-weight: 600; border-bottom: 3px solid #2563eb; }
+    .sidebar { width: 260px; background: #f8fafc; border-right: 1px solid #e2e8f0; flex-shrink: 0; }
+    .log-pane { background: #0f172a; color: #4ade80; font-family: 'Courier New', monospace; font-size: 11px; padding: 10px; height: 130px; overflow-y: auto; }
+    .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+    .badge-connected { background: #dcfce7; color: #15803d; }
+    .badge-disconnected { background: #fee2e2; color: #b91c1c; }
+    .badge-connecting { background: #fef9c3; color: #a16207; }
+    .signal-row { padding: 6px 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 8px; }
+    .signal-row:hover { background: #eff6ff; }
+    .signal-row.selected { background: #dbeafe; }
+    .type-s { background: #dbeafe; color: #1d4ed8; }
+    .type-a { background: #ffedd5; color: #c2410c; }
+    .type-at { background: #f3f4f6; color: #6b7280; }
+    input, select { font-size: 13px; }
+    label { font-size: 12px; color: #64748b; font-weight: 500; }
+    button { font-size: 13px; }
+    .section-label { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: #94a3b8; text-transform: uppercase; padding: 8px 12px 4px; }
+  </style>
+</head>
+<body class="p-8 space-y-16">
+
+<!-- ============================================================
+     SCREEN 1 – MAIN WINDOW: Connection Panel
+     ============================================================ -->
+<div>
+<div class="window max-w-4xl mx-auto bg-white">
+  <!-- Title bar -->
+  <div class="titlebar">
+    <div class="titlebar-dot bg-red-500"></div>
+    <div class="titlebar-dot bg-yellow-400"></div>
+    <div class="titlebar-dot bg-green-500"></div>
+    <span class="ml-2 text-sm font-semibold">Kuksa Java SDK Test App</span>
+    <span class="ml-auto badge badge-disconnected">Disconnected</span>
+  </div>
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <div class="tab active">Connection</div>
+    <div class="tab">Signals</div>
+    <div class="tab">Actuators</div>
+    <div class="tab">Subscriptions</div>
+    <div class="tab">Log</div>
+  </div>
+  <!-- Connection form -->
+  <div class="p-6 space-y-4 max-w-md">
+    <h2 class="text-base font-semibold text-gray-700">Databroker Connection</h2>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block mb-1">Host / IP</label>
+        <input class="w-full border border-gray-300 rounded px-2 py-1.5" value="localhost" />
+      </div>
+      <div>
+        <label class="block mb-1">Port</label>
+        <input class="w-full border border-gray-300 rounded px-2 py-1.5" value="55556" />
+      </div>
+    </div>
+    <div>
+      <label class="block mb-1">JWT Token (optional)</label>
+      <input class="w-full border border-gray-300 rounded px-2 py-1.5 text-gray-400 italic" placeholder="Paste JWT here…" />
+    </div>
+    <div class="flex items-center gap-3">
+      <label class="block">TLS</label>
+      <input type="checkbox" class="w-4 h-4" />
+      <label class="text-gray-400 text-xs">(disable for local dev)</label>
+    </div>
+    <div>
+      <label class="block mb-1">API Version</label>
+      <div class="flex rounded overflow-hidden border border-blue-600 w-fit">
+        <button class="px-4 py-1.5 bg-blue-600 text-white font-semibold text-sm">kuksa.val.v1</button>
+        <button class="px-4 py-1.5 bg-white text-blue-600 font-semibold text-sm">kuksa.val.v2</button>
+      </div>
+    </div>
+    <div class="flex gap-3 pt-2">
+      <button class="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700">Connect</button>
+      <button class="bg-gray-100 text-gray-600 px-6 py-2 rounded font-semibold" disabled>Disconnect</button>
+    </div>
+    <div class="bg-gray-50 border border-gray-200 rounded p-3 text-xs text-gray-500">
+      Status: Waiting for connection…
+    </div>
+  </div>
+</div>
+<p class="text-center text-xs text-gray-400 mt-2">Screen 1 – Connection Tab (Disconnected)</p>
+</div>
+
+<!-- ============================================================
+     SCREEN 2 – Signal Browser Tab (Connected · v1)
+     ============================================================ -->
+<div>
+<div class="window max-w-5xl mx-auto bg-white">
+  <div class="titlebar">
+    <div class="titlebar-dot bg-red-500"></div>
+    <div class="titlebar-dot bg-yellow-400"></div>
+    <div class="titlebar-dot bg-green-500"></div>
+    <span class="ml-2 text-sm font-semibold">Kuksa Java SDK Test App</span>
+    <span class="ml-auto badge badge-connected">Connected · v1 · localhost:55556</span>
+  </div>
+  <div class="tab-bar">
+    <div class="tab">Connection</div>
+    <div class="tab active">Signals</div>
+    <div class="tab">Actuators</div>
+    <div class="tab">Subscriptions</div>
+    <div class="tab">Log</div>
+  </div>
+  <div class="flex" style="height:520px">
+    <!-- Sidebar: signal list -->
+    <div class="sidebar flex flex-col">
+      <div class="p-2 border-b border-gray-200">
+        <input class="w-full border border-gray-200 rounded px-2 py-1 text-xs" placeholder="Filter by path…" />
+      </div>
+      <div class="flex gap-1 p-2 border-b border-gray-200">
+        <button class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded font-medium">All</button>
+        <button class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">Sensor</button>
+        <button class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">Actuator</button>
+        <button class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">Attr</button>
+      </div>
+      <div class="overflow-y-auto flex-1">
+        <div class="signal-row selected">
+          <span class="badge type-s">S</span>
+          <div class="min-w-0">
+            <p class="text-xs font-semibold truncate">Vehicle.Speed</p>
+            <p class="text-xs text-gray-400">float · 80.0</p>
+          </div>
+        </div>
+        <div class="signal-row">
+          <span class="badge type-a">A</span>
+          <div class="min-w-0">
+            <p class="text-xs font-semibold truncate">V.ADAS.CC.SpeedSet</p>
+            <p class="text-xs text-gray-400">float · 120.0</p>
+          </div>
+        </div>
+        <div class="signal-row">
+          <span class="badge type-s">S</span>
+          <div class="min-w-0">
+            <p class="text-xs font-semibold truncate">V.ADAS.ABS.IsEngaged</p>
+            <p class="text-xs text-gray-400">boolean · false</p>
+          </div>
+        </div>
+        <div class="signal-row">
+          <span class="badge type-a">A</span>
+          <div class="min-w-0">
+            <p class="text-xs font-semibold truncate">V.ADAS.ABS.IsEnabled</p>
+            <p class="text-xs text-gray-400">boolean · false</p>
+          </div>
+        </div>
+        <div class="signal-row">
+          <span class="badge type-at">At</span>
+          <div class="min-w-0">
+            <p class="text-xs font-semibold truncate">V.VehicleId.VIN</p>
+            <p class="text-xs text-gray-400">string</p>
+          </div>
+        </div>
+        <div class="signal-row">
+          <span class="badge type-s">S</span>
+          <div class="min-w-0">
+            <p class="text-xs font-semibold truncate">V.Passenger.HeartRate</p>
+            <p class="text-xs text-gray-400">uint · 80</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Main: signal detail -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <div class="p-4 flex-1 overflow-y-auto space-y-4">
+        <div class="flex items-start justify-between">
+          <div>
+            <h3 class="font-bold text-gray-800">Vehicle.Speed</h3>
+            <p class="text-xs text-gray-500 mt-0.5">High-level vehicle speed, as measured by the ECU. Unit: km/h</p>
+          </div>
+          <span class="badge type-s">sensor</span>
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-xs">
+          <div class="bg-gray-50 rounded p-2"><p class="text-gray-400 mb-1">Data Type</p><p class="font-mono font-semibold">float</p></div>
+          <div class="bg-gray-50 rounded p-2"><p class="text-gray-400 mb-1">Current Value</p><p class="font-semibold text-blue-700">80.0</p></div>
+          <div class="bg-gray-50 rounded p-2"><p class="text-gray-400 mb-1">VSS Path</p><p class="font-mono truncate">Vehicle.Speed</p></div>
+        </div>
+
+        <!-- v1 controls -->
+        <div class="border border-blue-200 rounded-lg p-3 bg-blue-50 space-y-3">
+          <p class="text-xs font-bold text-blue-700 uppercase tracking-widest">kuksa.val.v1 Operations</p>
+          <div class="flex gap-2 items-end">
+            <div class="flex-1">
+              <label class="block mb-1">New Value</label>
+              <input class="w-full border border-gray-300 rounded px-2 py-1.5" value="95.5" />
+            </div>
+            <div>
+              <label class="block mb-1">Field</label>
+              <select class="border border-gray-300 rounded px-2 py-1.5">
+                <option>VALUE</option>
+                <option>ACTUATOR_TARGET</option>
+                <option>METADATA</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Fetch</button>
+            <button class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Fetch (Node)</button>
+            <button class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Update</button>
+            <button class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Update (Node)</button>
+            <button class="bg-purple-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Subscribe (path)</button>
+            <button class="bg-purple-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Subscribe (flow)</button>
+            <button class="bg-purple-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Subscribe (node)</button>
+            <button class="bg-orange-500 text-white px-3 py-1.5 rounded text-xs font-semibold">Streamed Update ▶</button>
+          </div>
+        </div>
+      </div>
+      <!-- Mini log -->
+      <div class="log-pane">
+        <p class="text-blue-400">→ fetch(Vehicle.Speed, VALUE)</p>
+        <p>← GetResponse: entries[0].value.float = 80.0</p>
+        <p class="text-blue-400">→ update(Vehicle.Speed, 95.5, VALUE)</p>
+        <p>← SetResponse: OK</p>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="text-center text-xs text-gray-400 mt-2">Screen 2 – Signal Browser · Detail Panel (v1)</p>
+</div>
+
+<!-- ============================================================
+     SCREEN 3 – Signal Detail (v2 selected)
+     ============================================================ -->
+<div>
+<div class="window max-w-5xl mx-auto bg-white">
+  <div class="titlebar">
+    <div class="titlebar-dot bg-red-500"></div>
+    <div class="titlebar-dot bg-yellow-400"></div>
+    <div class="titlebar-dot bg-green-500"></div>
+    <span class="ml-2 text-sm font-semibold">Kuksa Java SDK Test App</span>
+    <span class="ml-auto badge badge-connected">Connected · v2 · localhost:55556</span>
+  </div>
+  <div class="tab-bar">
+    <div class="tab">Connection</div>
+    <div class="tab active">Signals</div>
+    <div class="tab">Actuators</div>
+    <div class="tab">Subscriptions</div>
+    <div class="tab">Log</div>
+  </div>
+  <div class="flex" style="height:520px">
+    <div class="sidebar flex flex-col">
+      <div class="p-2 border-b border-gray-200">
+        <input class="w-full border border-gray-200 rounded px-2 py-1 text-xs" placeholder="Filter by path…" />
+      </div>
+      <div class="overflow-y-auto flex-1">
+        <div class="signal-row selected">
+          <span class="badge type-s">S</span>
+          <div><p class="text-xs font-semibold">Vehicle.Speed</p><p class="text-xs text-gray-400">float · 95.5</p></div>
+        </div>
+        <div class="signal-row">
+          <span class="badge type-a">A</span>
+          <div><p class="text-xs font-semibold truncate">V.ADAS.CC.SpeedSet</p><p class="text-xs text-gray-400">float · 120.0</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <div class="p-4 flex-1 overflow-y-auto space-y-4">
+        <div class="flex items-start justify-between">
+          <div>
+            <h3 class="font-bold text-gray-800">Vehicle.Speed</h3>
+            <p class="text-xs text-gray-500">Unit: km/h</p>
+          </div>
+          <span class="badge type-s">sensor</span>
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-xs">
+          <div class="bg-gray-50 rounded p-2"><p class="text-gray-400 mb-1">Data Type</p><p class="font-mono font-semibold">float</p></div>
+          <div class="bg-gray-50 rounded p-2"><p class="text-gray-400 mb-1">Current Value</p><p class="font-semibold text-blue-700">95.5</p></div>
+          <div class="bg-gray-50 rounded p-2"><p class="text-gray-400 mb-1">Signal ID</p><p class="font-mono text-xs truncate">Vehicle.Speed</p></div>
+        </div>
+
+        <!-- v2 controls -->
+        <div class="border border-teal-200 rounded-lg p-3 bg-teal-50 space-y-3">
+          <p class="text-xs font-bold text-teal-700 uppercase tracking-widest">kuksa.val.v2 Operations</p>
+          <div class="flex gap-2 items-end">
+            <div class="flex-1">
+              <label class="block mb-1">Value</label>
+              <input class="w-full border border-gray-300 rounded px-2 py-1.5" value="100.0" />
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button class="bg-teal-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Fetch Value</button>
+            <button class="bg-teal-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Fetch Values (bulk)</button>
+            <button class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Publish Value</button>
+            <button class="bg-purple-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Subscribe (path)</button>
+            <button class="bg-purple-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Subscribe by ID</button>
+            <button class="bg-gray-500 text-white px-3 py-1.5 rounded text-xs font-semibold">List Metadata</button>
+            <button class="bg-gray-500 text-white px-3 py-1.5 rounded text-xs font-semibold">Server Info</button>
+          </div>
+        </div>
+      </div>
+      <div class="log-pane">
+        <p class="text-blue-400">→ fetchValue(Vehicle.Speed)</p>
+        <p>← GetValueResponse: dataPoint.value.float = 95.5</p>
+        <p class="text-blue-400">→ publishValue(Vehicle.Speed, 100.0)</p>
+        <p>← PublishValueResponse: OK</p>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="text-center text-xs text-gray-400 mt-2">Screen 3 – Signal Detail (v2 Operations)</p>
+</div>
+
+<!-- ============================================================
+     SCREEN 4 – Actuators Tab (v2)
+     ============================================================ -->
+<div>
+<div class="window max-w-5xl mx-auto bg-white">
+  <div class="titlebar">
+    <div class="titlebar-dot bg-red-500"></div>
+    <div class="titlebar-dot bg-yellow-400"></div>
+    <div class="titlebar-dot bg-green-500"></div>
+    <span class="ml-2 text-sm font-semibold">Kuksa Java SDK Test App</span>
+    <span class="ml-auto badge badge-connected">Connected · v2 · localhost:55556</span>
+  </div>
+  <div class="tab-bar">
+    <div class="tab">Connection</div>
+    <div class="tab">Signals</div>
+    <div class="tab active">Actuators</div>
+    <div class="tab">Subscriptions</div>
+    <div class="tab">Log</div>
+  </div>
+  <div class="flex" style="height:520px">
+    <!-- Actuator list with checkboxes -->
+    <div class="sidebar flex flex-col">
+      <div class="section-label">Actuators (select for batch)</div>
+      <div class="overflow-y-auto flex-1">
+        <div class="signal-row">
+          <input type="checkbox" checked class="w-3.5 h-3.5" />
+          <span class="badge type-a">A</span>
+          <div><p class="text-xs font-semibold truncate">V.ADAS.CC.SpeedSet</p><p class="text-xs text-gray-400">float</p></div>
+        </div>
+        <div class="signal-row">
+          <input type="checkbox" checked class="w-3.5 h-3.5" />
+          <span class="badge type-a">A</span>
+          <div><p class="text-xs font-semibold truncate">V.ADAS.ABS.IsEnabled</p><p class="text-xs text-gray-400">boolean</p></div>
+        </div>
+        <div class="signal-row">
+          <input type="checkbox" class="w-3.5 h-3.5" />
+          <span class="badge type-a">A</span>
+          <div><p class="text-xs font-semibold truncate">V.Body.Lights.High.IsOn</p><p class="text-xs text-gray-400">boolean</p></div>
+        </div>
+      </div>
+    </div>
+    <!-- Actuator detail -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <div class="p-4 flex-1 overflow-y-auto space-y-4">
+        <div class="flex items-start justify-between">
+          <div>
+            <h3 class="font-bold text-gray-800">Vehicle.ADAS.CruiseControl.SpeedSet</h3>
+            <p class="text-xs text-gray-500">Sets the cruise control target speed</p>
+          </div>
+          <span class="badge type-a">actuator</span>
+        </div>
+        <div class="border border-orange-200 rounded-lg p-3 bg-orange-50 space-y-3">
+          <p class="text-xs font-bold text-orange-700 uppercase tracking-widest">kuksa.val.v2 Actuate</p>
+          <div>
+            <label class="block mb-1">Target Value</label>
+            <input class="w-full border border-gray-300 rounded px-2 py-1.5" value="130.0" />
+          </div>
+          <div class="flex gap-2">
+            <button class="bg-orange-500 text-white px-4 py-2 rounded font-semibold text-sm">⚡ Actuate</button>
+            <button class="bg-gray-200 text-gray-700 px-4 py-2 rounded font-semibold text-sm">Fetch Value</button>
+          </div>
+        </div>
+        <div class="border border-orange-100 rounded-lg p-3 bg-orange-50/50 space-y-3">
+          <p class="text-xs font-bold text-orange-600 uppercase tracking-widest">Batch Actuate (2 selected)</p>
+          <div>
+            <label class="block mb-1">Shared Target Value</label>
+            <input class="w-full border border-gray-300 rounded px-2 py-1.5" placeholder="e.g. true / 120.0" />
+          </div>
+          <button class="bg-orange-700 text-white px-4 py-2 rounded font-semibold text-sm w-full">⚡ Batch Actuate (2 signals)</button>
+        </div>
+        <div class="border border-gray-200 rounded-lg p-3 space-y-2">
+          <p class="text-xs font-bold text-gray-600 uppercase tracking-widest">Provider Stream (v2)</p>
+          <div class="flex gap-2">
+            <button class="bg-indigo-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Open Stream</button>
+            <button class="bg-gray-200 text-gray-600 px-3 py-1.5 rounded text-xs font-semibold" disabled>Publish Values</button>
+            <button class="bg-gray-200 text-gray-600 px-3 py-1.5 rounded text-xs font-semibold" disabled>Close Stream</button>
+          </div>
+        </div>
+      </div>
+      <div class="log-pane">
+        <p class="text-blue-400">→ actuate(V.ADAS.CruiseControl.SpeedSet, 130.0)</p>
+        <p>← ActuateResponse: OK</p>
+        <p class="text-yellow-300">[MockProvider] SpeedSet=130.0 → ramping Vehicle.Speed…</p>
+        <p>[SUB] Vehicle.Speed = 110.0</p>
+        <p>[SUB] Vehicle.Speed = 120.0</p>
+        <p>[SUB] Vehicle.Speed = 130.0</p>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="text-center text-xs text-gray-400 mt-2">Screen 4 – Actuators Tab (v2: Actuate + Batch Actuate + Provider Stream)</p>
+</div>
+
+<!-- ============================================================
+     SCREEN 5 – Subscriptions Tab
+     ============================================================ -->
+<div>
+<div class="window max-w-5xl mx-auto bg-white">
+  <div class="titlebar">
+    <div class="titlebar-dot bg-red-500"></div>
+    <div class="titlebar-dot bg-yellow-400"></div>
+    <div class="titlebar-dot bg-green-500"></div>
+    <span class="ml-2 text-sm font-semibold">Kuksa Java SDK Test App</span>
+    <span class="ml-auto badge badge-connected">Connected · v2 · localhost:55556</span>
+  </div>
+  <div class="tab-bar">
+    <div class="tab">Connection</div>
+    <div class="tab">Signals</div>
+    <div class="tab">Actuators</div>
+    <div class="tab active">Subscriptions</div>
+    <div class="tab">Log</div>
+  </div>
+  <div class="flex" style="height:520px">
+    <!-- Active subs list -->
+    <div class="sidebar flex flex-col">
+      <div class="section-label">Active Subscriptions</div>
+      <div class="overflow-y-auto flex-1 divide-y divide-gray-100">
+        <div class="p-3">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-semibold">Vehicle.Speed</p>
+            <button class="text-xs text-red-500">✕</button>
+          </div>
+          <p class="text-xs text-gray-400">path · v2 · 130.0</p>
+          <span class="text-xs bg-green-100 text-green-700 rounded-full px-2">active</span>
+        </div>
+        <div class="p-3">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-semibold">V.Passenger.HeartRate</p>
+            <button class="text-xs text-red-500">✕</button>
+          </div>
+          <p class="text-xs text-gray-400">path · v2 · 82</p>
+          <span class="text-xs bg-green-100 text-green-700 rounded-full px-2">active</span>
+        </div>
+      </div>
+      <div class="p-3 border-t border-gray-200 space-y-2">
+        <input class="w-full border border-gray-200 rounded px-2 py-1 text-xs" placeholder="VSS path to subscribe…" />
+        <div class="flex gap-1">
+          <button class="flex-1 text-xs bg-purple-600 text-white py-1.5 rounded font-medium">+ by Path</button>
+          <button class="flex-1 text-xs bg-indigo-600 text-white py-1.5 rounded font-medium">+ by ID</button>
+        </div>
+      </div>
+    </div>
+    <!-- Live log -->
+    <div class="flex-1 flex flex-col">
+      <div class="section-label">Live Update Log</div>
+      <div class="log-pane flex-1 h-full" style="height:100%">
+        <p class="text-gray-500">09:41:02 [SUB] Vehicle.Speed = 80.0</p>
+        <p>09:41:05 [SUB] Vehicle.Speed = 110.0</p>
+        <p>09:41:07 [SUB] Vehicle.Speed = 120.0</p>
+        <p>09:41:09 [SUB] Vehicle.Speed = 130.0</p>
+        <p>09:41:10 [SUB] V.Passenger.HeartRate = 80</p>
+        <p>09:41:13 [SUB] V.Passenger.HeartRate = 82</p>
+        <p class="text-gray-600">_ ▌</p>
+      </div>
+      <div class="p-3 border-t border-gray-800 bg-gray-900 flex gap-2">
+        <button class="text-xs bg-gray-700 text-gray-300 px-3 py-1 rounded">Clear Log</button>
+        <button class="text-xs bg-gray-700 text-gray-300 px-3 py-1 rounded">Export…</button>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="text-center text-xs text-gray-400 mt-2">Screen 5 – Subscriptions Tab (live update log)</p>
+</div>
+
+<!-- ============================================================
+     SCREEN 6 – Log Tab + Server Info dialog
+     ============================================================ -->
+<div>
+<div class="window max-w-5xl mx-auto bg-white">
+  <div class="titlebar">
+    <div class="titlebar-dot bg-red-500"></div>
+    <div class="titlebar-dot bg-yellow-400"></div>
+    <div class="titlebar-dot bg-green-500"></div>
+    <span class="ml-2 text-sm font-semibold">Kuksa Java SDK Test App</span>
+    <span class="ml-auto badge badge-connected">Connected · v2 · localhost:55556</span>
+  </div>
+  <div class="tab-bar">
+    <div class="tab">Connection</div>
+    <div class="tab">Signals</div>
+    <div class="tab">Actuators</div>
+    <div class="tab">Subscriptions</div>
+    <div class="tab active">Log</div>
+  </div>
+  <div class="flex flex-col" style="height:520px">
+    <div class="flex gap-2 p-3 border-b border-gray-100 items-center">
+      <button class="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded font-medium">Clear All</button>
+      <button class="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded font-medium">Export…</button>
+      <button class="text-xs bg-teal-600 text-white px-3 py-1.5 rounded font-medium ml-auto">Server Info (v2)</button>
+    </div>
+    <div class="log-pane flex-1 h-full" style="height:100%">
+      <p class="text-blue-400">09:41:00 [REQ] connect(localhost:55556)</p>
+      <p class="text-green-400">09:41:01 [RES] DataBrokerConnection: READY</p>
+      <p class="text-blue-400">09:41:02 [REQ] fetch(Vehicle.Speed, VALUE)</p>
+      <p>09:41:02 [RES] GetResponse: entries[0].value.float = 80.0</p>
+      <p class="text-blue-400">09:41:05 [REQ] update(Vehicle.Speed, 95.5, VALUE)</p>
+      <p>09:41:05 [RES] SetResponse: OK (0 errors)</p>
+      <p class="text-blue-400">09:41:08 [REQ] actuate(V.ADAS.CruiseControl.SpeedSet, 130.0)</p>
+      <p>09:41:08 [RES] ActuateResponse: OK</p>
+      <p class="text-yellow-300">09:41:08 [EVT] MockProvider: ramp Vehicle.Speed → 130.0 (10 steps/500ms)</p>
+      <p class="text-purple-400">09:41:09 [SUB] Vehicle.Speed = 110.0</p>
+      <p class="text-purple-400">09:41:09 [SUB] Vehicle.Speed = 120.0</p>
+      <p class="text-purple-400">09:41:09 [SUB] Vehicle.Speed = 130.0</p>
+      <p class="text-red-400">09:41:15 [ERR] fetchValue(Vehicle.Unknown): NOT_FOUND</p>
+    </div>
+  </div>
+</div>
+<p class="text-center text-xs text-gray-400 mt-2">Screen 6 – Full Audit Log Tab</p>
+</div>
+
+<!-- ============================================================
+     SCREEN 7 – Connection Error State
+     ============================================================ -->
+<div>
+<div class="window max-w-4xl mx-auto bg-white">
+  <div class="titlebar">
+    <div class="titlebar-dot bg-red-500"></div>
+    <div class="titlebar-dot bg-yellow-400"></div>
+    <div class="titlebar-dot bg-green-500"></div>
+    <span class="ml-2 text-sm font-semibold">Kuksa Java SDK Test App</span>
+    <span class="ml-auto badge badge-disconnected">Error</span>
+  </div>
+  <div class="tab-bar">
+    <div class="tab active">Connection</div>
+    <div class="tab text-gray-300 cursor-not-allowed" disabled>Signals</div>
+    <div class="tab text-gray-300 cursor-not-allowed">Actuators</div>
+    <div class="tab text-gray-300 cursor-not-allowed">Subscriptions</div>
+    <div class="tab text-gray-300 cursor-not-allowed">Log</div>
+  </div>
+  <div class="p-6 max-w-md space-y-4">
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 space-y-2">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+        <p class="font-semibold text-red-800">Connection Failed</p>
+      </div>
+      <p class="text-sm text-red-700 font-mono">DataBrokerException: timeout</p>
+      <p class="text-xs text-red-600">Could not reach localhost:55556 within 10 s. Verify the databroker is running:<br/><code>docker compose -f mock-environment/docker-compose.yml ps</code></p>
+    </div>
+    <div class="flex gap-3">
+      <button class="bg-blue-600 text-white px-5 py-2 rounded font-semibold text-sm">Retry</button>
+      <button class="bg-gray-100 text-gray-600 px-5 py-2 rounded font-semibold text-sm">Edit Settings</button>
+    </div>
+  </div>
+</div>
+<p class="text-center text-xs text-gray-400 mt-2">Screen 7 – Error State (connection timeout)</p>
+</div>
+
+<!-- ============================================================
+     SCREEN 8 – Signals Tab · Raw Path Mode (v1)
+     ============================================================ -->
+<div>
+<div class="window max-w-5xl mx-auto bg-white">
+  <div class="titlebar">
+    <div class="titlebar-dot bg-red-500"></div>
+    <div class="titlebar-dot bg-yellow-400"></div>
+    <div class="titlebar-dot bg-green-500"></div>
+    <span class="ml-2 text-sm font-semibold">Kuksa Java SDK Test App</span>
+    <span class="ml-auto badge badge-connected">Connected · v1 · localhost:55556</span>
+  </div>
+  <div class="tab-bar">
+    <div class="tab">Connection</div>
+    <div class="tab active">Signals</div>
+    <div class="tab">Actuators</div>
+    <div class="tab">Subscriptions</div>
+    <div class="tab">Log</div>
+  </div>
+
+  <!-- Mode toolbar -->
+  <div class="flex items-center gap-3 px-3 py-2 bg-gray-50 border-b border-gray-200">
+    <span class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Input Mode</span>
+    <div class="flex rounded overflow-hidden border border-gray-300">
+      <button class="px-3 py-1 text-xs bg-white text-gray-500 font-medium">VSS Model</button>
+      <button class="px-3 py-1 text-xs bg-blue-600 text-white font-semibold">Raw Path</button>
+    </div>
+    <!-- DataType selector (only shown in Raw Path mode) -->
+    <div class="flex items-center gap-2 ml-4">
+      <label class="text-xs text-gray-500">Data Type</label>
+      <select class="border border-gray-300 rounded px-2 py-1 text-xs">
+        <option selected>float</option>
+        <option>double</option>
+        <option>boolean</option>
+        <option>int32</option>
+        <option>uint32</option>
+        <option>int64</option>
+        <option>uint64</option>
+        <option>string</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="flex" style="height:500px">
+    <!-- Raw Path left pane -->
+    <div class="sidebar flex flex-col p-3 gap-3">
+      <div>
+        <label class="block mb-1">VSS Path</label>
+        <input class="w-full border border-gray-300 rounded px-2 py-1.5 font-mono text-sm" value="Vehicle.Speed" />
+      </div>
+      <div>
+        <label class="block mb-1">History</label>
+        <select class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs">
+          <option>Vehicle.Speed</option>
+          <option>Vehicle.ADAS.ABS.IsEngaged</option>
+          <option>Vehicle.Passenger.HeartRate</option>
+        </select>
+        <p class="text-xs text-gray-400 mt-1">Last 20 used paths</p>
+      </div>
+      <div class="mt-auto pt-3 border-t border-gray-200">
+        <p class="text-xs text-gray-400 italic">Node-based operations (Fetch Node, Update Node, Subscribe Node) are not available in Raw Path mode.</p>
+      </div>
+    </div>
+
+    <!-- Detail right pane (Raw Path mode, v1) -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <div class="p-4 flex-1 overflow-y-auto space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-gray-700 font-mono">Vehicle.Speed</h3>
+          <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">Raw Path Mode</span>
+        </div>
+        <!-- No metadata grid in raw path mode -->
+        <p class="text-xs text-gray-400 italic">No compile-time metadata available. Data type: <strong>float</strong>.</p>
+
+        <div class="border border-blue-200 rounded-lg p-3 bg-blue-50 space-y-3">
+          <p class="text-xs font-bold text-blue-700 uppercase tracking-widest">kuksa.val.v1 — Path Operations</p>
+          <div class="flex gap-2 items-end">
+            <div class="flex-1">
+              <label class="block mb-1">Value</label>
+              <input class="w-full border border-gray-300 rounded px-2 py-1.5" value="95.5" />
+            </div>
+            <div>
+              <label class="block mb-1">Field</label>
+              <select class="border border-gray-300 rounded px-2 py-1.5">
+                <option>VALUE</option>
+                <option>ACTUATOR_TARGET</option>
+                <option>METADATA</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Fetch</button>
+            <button class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Update</button>
+            <button class="bg-purple-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Subscribe (path)</button>
+            <button class="bg-purple-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Subscribe (flow)</button>
+          </div>
+          <!-- Node buttons hidden in raw path mode - shown as greyed-out disabled to illustrate -->
+          <div class="flex flex-wrap gap-2 opacity-30 cursor-not-allowed">
+            <button class="bg-gray-300 text-gray-500 px-3 py-1.5 rounded text-xs font-semibold line-through" disabled>Fetch (Node)</button>
+            <button class="bg-gray-300 text-gray-500 px-3 py-1.5 rounded text-xs font-semibold line-through" disabled>Update (Node)</button>
+            <button class="bg-gray-300 text-gray-500 px-3 py-1.5 rounded text-xs font-semibold line-through" disabled>Subscribe (node)</button>
+          </div>
+          <p class="text-xs text-gray-400 italic">↑ Node-based operations require VSS Model mode.</p>
+        </div>
+      </div>
+      <div class="log-pane">
+        <p class="text-blue-400">→ fetch(FetchRequest("Vehicle.Speed", VALUE))</p>
+        <p>← GetResponse: entries[0].value.float = 80.0</p>
+        <p class="text-blue-400">→ update(UpdateRequest("Vehicle.Speed", Datapoint.float(95.5f), VALUE))</p>
+        <p>← SetResponse: OK</p>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="text-center text-xs text-gray-400 mt-2">Screen 8 – Signals Tab · Raw Path Mode (v1) — node-based buttons hidden</p>
+</div>
+
+<!-- ============================================================
+     SCREEN 9 – Signals Tab · Raw Path Mode (v2)
+     ============================================================ -->
+<div>
+<div class="window max-w-5xl mx-auto bg-white">
+  <div class="titlebar">
+    <div class="titlebar-dot bg-red-500"></div>
+    <div class="titlebar-dot bg-yellow-400"></div>
+    <div class="titlebar-dot bg-green-500"></div>
+    <span class="ml-2 text-sm font-semibold">Kuksa Java SDK Test App</span>
+    <span class="ml-auto badge badge-connected">Connected · v2 · localhost:55556</span>
+  </div>
+  <div class="tab-bar">
+    <div class="tab">Connection</div>
+    <div class="tab active">Signals</div>
+    <div class="tab">Actuators</div>
+    <div class="tab">Subscriptions</div>
+    <div class="tab">Log</div>
+  </div>
+
+  <!-- Mode toolbar -->
+  <div class="flex items-center gap-3 px-3 py-2 bg-gray-50 border-b border-gray-200">
+    <span class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Input Mode</span>
+    <div class="flex rounded overflow-hidden border border-gray-300">
+      <button class="px-3 py-1 text-xs bg-white text-gray-500 font-medium">VSS Model</button>
+      <button class="px-3 py-1 text-xs bg-blue-600 text-white font-semibold">Raw Path</button>
+    </div>
+    <div class="flex items-center gap-2 ml-4">
+      <label class="text-xs text-gray-500">Data Type</label>
+      <select class="border border-gray-300 rounded px-2 py-1 text-xs">
+        <option>float</option>
+        <option>double</option>
+        <option selected>boolean</option>
+        <option>int32</option>
+        <option>uint32</option>
+        <option>string</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="flex" style="height:500px">
+    <!-- Raw Path left pane — validation error state -->
+    <div class="sidebar flex flex-col p-3 gap-3">
+      <div>
+        <label class="block mb-1">VSS Path</label>
+        <!-- Empty field triggering validation error -->
+        <input class="w-full border-2 border-red-400 rounded px-2 py-1.5 font-mono text-sm bg-red-50" placeholder="e.g. Vehicle.ADAS.ABS.IsEngaged" />
+        <p class="text-xs text-red-600 mt-1 font-medium">⚠ VSS path must not be empty</p>
+      </div>
+      <div>
+        <label class="block mb-1">History</label>
+        <select class="w-full border border-gray-300 rounded px-2 py-1.5 text-xs">
+          <option>Vehicle.Speed</option>
+          <option>Vehicle.ADAS.ABS.IsEngaged</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Detail pane (Raw Path mode, v2) -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <div class="p-4 flex-1 overflow-y-auto space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-gray-400 font-mono italic">— no path entered —</h3>
+          <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">Raw Path Mode</span>
+        </div>
+
+        <div class="border border-teal-200 rounded-lg p-3 bg-teal-50 space-y-3">
+          <p class="text-xs font-bold text-teal-700 uppercase tracking-widest">kuksa.val.v2 — Path Operations</p>
+          <div>
+            <label class="block mb-1">Value</label>
+            <input class="w-full border border-gray-300 rounded px-2 py-1.5" value="true" />
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button class="bg-teal-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Fetch Value</button>
+            <button class="bg-teal-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Fetch Values (bulk)</button>
+            <button class="bg-green-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Publish Value</button>
+            <button class="bg-purple-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Subscribe (path)</button>
+            <button class="bg-purple-600 text-white px-3 py-1.5 rounded text-xs font-semibold">Subscribe by ID</button>
+            <button class="bg-gray-500 text-white px-3 py-1.5 rounded text-xs font-semibold">List Metadata</button>
+          </div>
+          <p class="text-xs text-gray-400 italic">All v2 operations use path strings via <code>SignalID.newBuilder().setPath(vssPath)</code>.</p>
+        </div>
+      </div>
+      <div class="log-pane">
+        <p class="text-red-400">⚠ Path validation failed — enter a VSS path before sending a request</p>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="text-center text-xs text-gray-400 mt-2">Screen 9 – Signals Tab · Raw Path Mode (v2) — empty-path validation error</p>
+</div>
+
+<!-- ============================================================
+     SCREEN 10 – Actuators Tab · Raw Path Mode (Batch)
+     ============================================================ -->
+<div>
+<div class="window max-w-5xl mx-auto bg-white">
+  <div class="titlebar">
+    <div class="titlebar-dot bg-red-500"></div>
+    <div class="titlebar-dot bg-yellow-400"></div>
+    <div class="titlebar-dot bg-green-500"></div>
+    <span class="ml-2 text-sm font-semibold">Kuksa Java SDK Test App</span>
+    <span class="ml-auto badge badge-connected">Connected · v2 · localhost:55556</span>
+  </div>
+  <div class="tab-bar">
+    <div class="tab">Connection</div>
+    <div class="tab">Signals</div>
+    <div class="tab active">Actuators</div>
+    <div class="tab">Subscriptions</div>
+    <div class="tab">Log</div>
+  </div>
+
+  <!-- Mode toolbar -->
+  <div class="flex items-center gap-3 px-3 py-2 bg-gray-50 border-b border-gray-200">
+    <span class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Input Mode</span>
+    <div class="flex rounded overflow-hidden border border-gray-300">
+      <button class="px-3 py-1 text-xs bg-white text-gray-500 font-medium">VSS Model</button>
+      <button class="px-3 py-1 text-xs bg-blue-600 text-white font-semibold">Raw Path</button>
+    </div>
+    <div class="flex items-center gap-2 ml-4">
+      <label class="text-xs text-gray-500">Data Type</label>
+      <select class="border border-gray-300 rounded px-2 py-1 text-xs">
+        <option selected>float</option>
+        <option>boolean</option>
+        <option>string</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="flex" style="height:500px">
+    <!-- Raw Path left pane — batch path builder -->
+    <div class="sidebar flex flex-col p-3 gap-3">
+      <div>
+        <label class="block mb-1">VSS Actuator Path</label>
+        <input class="w-full border border-gray-300 rounded px-2 py-1.5 font-mono text-xs" value="Vehicle.ADAS.CruiseControl.SpeedSet" />
+      </div>
+      <button class="w-full bg-blue-100 text-blue-700 text-xs font-semibold py-1.5 rounded border border-blue-300">+ Add to Batch</button>
+      <div>
+        <label class="block mb-1">Batch List</label>
+        <div class="border border-gray-200 rounded bg-white divide-y divide-gray-100 text-xs">
+          <div class="flex items-center justify-between px-2 py-1.5">
+            <span class="font-mono">V.ADAS.CC.SpeedSet</span>
+            <button class="text-red-400 hover:text-red-600">✕</button>
+          </div>
+          <div class="flex items-center justify-between px-2 py-1.5">
+            <span class="font-mono">V.ADAS.ABS.IsEnabled</span>
+            <button class="text-red-400 hover:text-red-600">✕</button>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-1">2 paths in batch</p>
+      </div>
+      <div>
+        <label class="block mb-1">History</label>
+        <select class="w-full border border-gray-200 rounded px-2 py-1 text-xs">
+          <option>V.ADAS.CruiseControl.SpeedSet</option>
+          <option>V.ADAS.ABS.IsEnabled</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Right pane: actuate controls -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <div class="p-4 flex-1 overflow-y-auto space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-gray-700 text-sm">Raw Path Actuator Controls</h3>
+          <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">Raw Path Mode</span>
+        </div>
+
+        <!-- Single actuate -->
+        <div class="border border-orange-200 rounded-lg p-3 bg-orange-50 space-y-3">
+          <p class="text-xs font-bold text-orange-700 uppercase tracking-widest">Single Actuate (v2)</p>
+          <div class="flex gap-2 items-end">
+            <div class="flex-1">
+              <label class="block mb-1">Target Value</label>
+              <input class="w-full border border-gray-300 rounded px-2 py-1.5" value="130.0" />
+            </div>
+          </div>
+          <button class="bg-orange-500 text-white px-4 py-2 rounded font-semibold text-sm">⚡ Actuate (path from left)</button>
+        </div>
+
+        <!-- Batch actuate -->
+        <div class="border border-orange-100 rounded-lg p-3 bg-orange-50/50 space-y-3">
+          <p class="text-xs font-bold text-orange-600 uppercase tracking-widest">Batch Actuate (2 paths in batch)</p>
+          <div class="flex gap-2 items-end">
+            <div class="flex-1">
+              <label class="block mb-1">Shared Target Value</label>
+              <input class="w-full border border-gray-300 rounded px-2 py-1.5" value="120.0" />
+            </div>
+          </div>
+          <button class="bg-orange-700 text-white px-4 py-2 rounded font-semibold text-sm w-full">⚡ Batch Actuate (2 paths)</button>
+        </div>
+      </div>
+      <div class="log-pane">
+        <p class="text-blue-400">→ batchActuate([V.ADAS.CC.SpeedSet, V.ADAS.ABS.IsEnabled], 120.0)</p>
+        <p>← BatchActuateResponse: OK</p>
+        <p class="text-yellow-300">[MockProvider] SpeedSet=120 → ramping Vehicle.Speed…</p>
+        <p class="text-yellow-300">[MockProvider] ABS.IsEnabled=120 → ABS.IsEngaged=true</p>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="text-center text-xs text-gray-400 mt-2">Screen 10 – Actuators Tab · Raw Path Mode (batch path builder)</p>
+</div>
+
+</body>
+</html>
