@@ -55,5 +55,9 @@ kotlin {
 }
 
 dependencies {
+    // Kotest pulls in the kotlinx-serialization BOM as a transitive platform. Declaring it
+    // explicitly makes it a first class dependency which can be written into the lock file.
+    implementation(platform(libs.kotlinx.serialization.bom))
+
     implementation(libs.kotest)
 }

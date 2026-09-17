@@ -88,6 +88,10 @@ dependencies {
 
     testImplementation(project(":test-core"))
 
+    // Kotest pulls in the kotlinx-serialization BOM as a transitive platform. Declaring it
+    // explicitly makes it a first class dependency which can be written into the lock file.
+    testImplementation(platform(libs.kotlinx.serialization.bom))
+
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotest)
     testImplementation(libs.mockk)
