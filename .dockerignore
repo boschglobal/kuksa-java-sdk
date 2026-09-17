@@ -1,0 +1,9 @@
+.git
+.github
+.gradle
+.idea
+.run
+**/build/
+*.hprof
+*.log
+specs/

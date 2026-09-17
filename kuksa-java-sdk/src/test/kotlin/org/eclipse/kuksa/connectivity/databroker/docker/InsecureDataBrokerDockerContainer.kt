@@ -23,7 +23,7 @@ import com.github.dockerjava.api.command.CreateContainerResponse
 
 // no tls, no authentication
 class InsecureDataBrokerDockerContainer(
-    containerName: String = "databroker_test_insecure",
+    containerName: String = "kuksa_java_sdk_databroker_test_insecure",
 ) : DataBrokerDockerContainer(containerName) {
 
     @Suppress("ArgumentListWrapping", "ktlint:standard:argument-list-wrapping") // better key-value pair readability
