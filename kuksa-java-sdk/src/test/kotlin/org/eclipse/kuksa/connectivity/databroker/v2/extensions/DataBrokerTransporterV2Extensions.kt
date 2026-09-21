@@ -21,6 +21,8 @@ package org.eclipse.kuksa.connectivity.databroker.v2.extensions
 
 import io.kotest.assertions.fail
 import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerInvokerV2
+import org.eclipse.kuksa.connectivity.databroker.v2.KuksaValV2Protocol
+import org.eclipse.kuksa.connectivity.databroker.v2.request.PublishValueRequestV2
 import org.eclipse.kuksa.proto.v2.Types
 import org.eclipse.kuksa.proto.v2.Types.SignalID
 import kotlin.random.Random
@@ -39,6 +41,28 @@ internal suspend fun DataBrokerInvokerV2.updateRandomFloatValue(
 
     try {
         publishValue(signalID, updatedDatapoint)
+    } catch (e: Exception) {
+        fail("Updating $vssPath to $randomFloat failed: $e")
+    }
+
+    return randomFloat
+}
+
+internal suspend fun KuksaValV2Protocol.updateRandomFloatValue(
+    vssPath: String,
+    maxValue: Int = 300,
+): Float {
+    val random = Random(System.nanoTime())
+    val randomValue = random.nextInt(maxValue)
+    val randomFloat = randomValue.toFloat()
+
+    val signalID = SignalID.newBuilder().setPath(vssPath).build()
+    val value = Types.Value.newBuilder().setFloat(randomFloat).build()
+    val updatedDatapoint = Types.Datapoint.newBuilder().setValue(value).build()
+
+    try {
+        val publishRequest = PublishValueRequestV2(signalID, updatedDatapoint)
+        publishValue(publishRequest)
     } catch (e: Exception) {
         fail("Updating $vssPath to $randomFloat failed: $e")
     }

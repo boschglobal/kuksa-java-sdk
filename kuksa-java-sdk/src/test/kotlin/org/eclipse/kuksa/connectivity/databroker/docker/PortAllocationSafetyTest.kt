@@ -17,32 +17,22 @@
  *
  */
 
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+package org.eclipse.kuksa.connectivity.databroker.docker
 
-plugins {
-    id("application")
-    kotlin("jvm")
-}
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.shouldBe
 
-val javaVersion = JavaVersion.toVersion(libs.versions.jvmTarget.get())
-
-tasks.withType<Test>().configureEach {
-    failOnNoDiscoveredTests = false
-}
-
-java {
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.fromTarget(libs.versions.jvmTarget.get()))
+class PortAllocationSafetyTest : BehaviorSpec({
+    given("Port allocation mechanism") {
+        `when`("Allocating multiple ephemeral ports") {
+            then("It returns valid available port numbers") {
+                val ports = (1..10).map {
+                    DataBrokerDockerContainer.findAvailablePort()
+                }
+                ports.size shouldBeGreaterThan 0
+                ports.all { it > 1024 } shouldBe true
+            }
+        }
     }
-}
-
-dependencies {
-    implementation(project(":kuksa-java-sdk"))
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
-}
+})

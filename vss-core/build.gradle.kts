@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2026 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
 
 import org.eclipse.kuksa.version.SemanticVersion
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_PATH_KEY
-import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
@@ -36,14 +35,16 @@ val semanticVersion = SemanticVersion(versionPath)
 version = semanticVersion.versionName
 group = "org.eclipse.kuksa"
 
+val javaVersion = JavaVersion.toVersion(libs.versions.jvmTarget.get())
+
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_11)
+        jvmTarget.set(JvmTarget.fromTarget(libs.versions.jvmTarget.get()))
     }
 }
 
@@ -51,20 +52,16 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
 
+    // Kotest pulls in the kotlinx-serialization BOM as a transitive platform. Declaring it
+    // explicitly makes it a first class dependency which can be written into the lock file.
+    testImplementation(platform(libs.kotlinx.serialization.bom))
+
     testImplementation(libs.kotest)
     testImplementation(libs.mockk)
 }
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-
-    kotlin {
-        compilerOptions {
-            // https://youtrack.jetbrains.com/issue/KT-48678/Coroutine-debugger-disable-was-optimised-out-compiler-feature
-            // We don't want local variables to be optimized out while debugging into tests
-            freeCompilerArgs.add("-Xdebug")
-        }
-    }
 }
 
 publish {
@@ -74,15 +71,12 @@ publish {
 }
 
 tasks.register("javadocJar", Jar::class) {
-    dependsOn("dokkaHtml")
+    description = "Generates a Javadoc jar from Dokka HTML output"
+    dependsOn("dokkaGeneratePublicationHtml")
 
     val buildDir = layout.buildDirectory.get()
     from("$buildDir/dokka/html")
     archiveClassifier.set("javadoc")
-}
-
-tasks.withType<DokkaTask>().configureEach {
-    notCompatibleWithConfigurationCache("https://github.com/Kotlin/dokka/issues/2231")
 }
 
 java {

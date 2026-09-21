@@ -17,7 +17,7 @@ syntax = "proto3";
 package kuksa.val.v1;
 import "google/protobuf/timestamp.proto";
 
-option go_package = "org/eclipse/kuksa/proto/v1";
+option go_package = "kuksa/val/v1";
 option java_multiple_files = false;
 option java_package = "org.eclipse.kuksa.proto.v1";
 

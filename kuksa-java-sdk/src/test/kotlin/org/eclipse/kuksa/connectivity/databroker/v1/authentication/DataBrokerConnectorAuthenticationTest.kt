@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2026 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -197,16 +197,8 @@ class DataBrokerConnectorAuthenticationTest : BehaviorSpec({
                 jwtFileStream = null,
             )
 
-            `when`("Trying to connect") {
-                val result = runCatching {
-                    dataBrokerConnector.connect()
-                }
-
-                then("The connection should be successful") {
-                    result.getOrNull() shouldNotBe null
-                }
-
-                val connection = result.getOrNull()!!
+            and("a successfully established connection") {
+                val connection = dataBrokerConnector.connect()
 
                 `when`("Reading the VALUE of Vehicle.Speed") {
                     val fetchRequest = FetchRequest(speedVssPath)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2025 Contributors to the Eclipse Foundation
+ * Copyright (c) 2023 - 2026 Contributors to the Eclipse Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_NAME
 import org.eclipse.kuksa.version.VERSION_FILE_DEFAULT_PATH_KEY
 import java.nio.file.FileVisitResult
 import java.nio.file.Path
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.bufferedWriter
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
@@ -49,8 +48,14 @@ plugins {
 nexusPublishing {
     repositories {
         sonatype {
-            username = System.getenv("ORG_OSSRH_USERNAME")
-            password = System.getenv("ORG_OSSRH_PASSWORD")
+            val releaseUri = uri("https://ossrh-staging-api.central.sonatype.com/service/local/")
+            nexusUrl.set(releaseUri)
+
+            val snapshotUri = uri("https://central.sonatype.com/repository/maven-snapshots/")
+            snapshotRepositoryUrl.set(snapshotUri)
+
+            username = System.getenv("SONATYPE_USERNAME")
+            password = System.getenv("SONATYPE_PASSWORD")
         }
     }
 }
@@ -69,21 +74,41 @@ subprojects {
     // see: https://kotest.io/docs/framework/tags.html#gradle
     tasks.withType<Test> {
         val systemPropertiesMap = HashMap<String, Any>()
-        System.getProperties().forEach { key, value ->
+        System.getProperties().forEach { (key, value) ->
             systemPropertiesMap[key.toString()] = value.toString()
         }
         systemProperties = systemPropertiesMap
     }
 
     // https://docs.gradle.org/current/userguide/dependency_locking.html
+    // update with: ./gradlew resolveAndLockAll --write-locks --update-locks '*:*' --no-configuration-cache
     dependencyLocking {
         lockAllConfigurations()
         lockFile = file("$projectDir/gradle.lockfile")
     }
 }
 
-@OptIn(ExperimentalPathApi::class)
+// update with: ./gradlew resolveAndLockAll --write-locks --update-locks '*:*' --no-configuration-cache
+tasks.register("resolveAndLockAll") {
+    group = "dependencies"
+    description = "Resolves and locks all dependencies for all subprojects."
+    notCompatibleWithConfigurationCache("Filters configurations at execution time")
+    doFirst {
+        require(gradle.startParameter.isWriteDependencyLocks) {
+            "$path must be run with --write-locks"
+        }
+    }
+    doLast {
+        allprojects.forEach { proj ->
+            proj.configurations
+                .filter { it.isCanBeResolved }
+                .forEach { it.resolve() }
+        }
+    }
+}
+
 tasks.register("mergeDashFiles") {
+    description = "Merges all dash files from subprojects into a single dash file in the build directory."
     group = "oss"
 
     dependsOn(
@@ -132,7 +157,8 @@ subprojects {
     }
 }
 
-tasks.create("jacocoRootReport", JacocoReport::class.java) {
+tasks.register("jacocoRootReport", JacocoReport::class.java) {
+    description = "Generates a Jacoco coverage report for all subprojects."
     group = "report"
 
     reports {

@@ -19,30 +19,31 @@
 
 package org.eclipse.kuksa.connectivity.databroker
 
-import io.grpc.ConnectivityState
-import io.grpc.ManagedChannel
 import io.grpc.StatusException
 import io.grpc.stub.StreamObserver
 import io.kotest.assertions.fail
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotBeEmpty
 import io.kotest.matchers.types.instanceOf
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.flow.first
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.provider.DataBrokerConnectorProvider
-import org.eclipse.kuksa.connectivity.databroker.v2.DataBrokerInvokerV2
 import org.eclipse.kuksa.connectivity.databroker.v2.extensions.toSignalId
 import org.eclipse.kuksa.connectivity.databroker.v2.extensions.updateRandomFloatValue
 import org.eclipse.kuksa.connectivity.databroker.v2.request.ActuateRequestV2
+import org.eclipse.kuksa.connectivity.databroker.v2.request.BatchActuateRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.FetchValueRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.FetchValuesRequestV2
+import org.eclipse.kuksa.connectivity.databroker.v2.request.ListMetadataRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.PublishValueRequestV2
+import org.eclipse.kuksa.connectivity.databroker.v2.request.SubscribeByIdRequestV2
 import org.eclipse.kuksa.connectivity.databroker.v2.request.SubscribeRequestV2
 import org.eclipse.kuksa.proto.v2.KuksaValV2.OpenProviderStreamRequest
 import org.eclipse.kuksa.proto.v2.KuksaValV2.OpenProviderStreamResponse
@@ -77,9 +78,6 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
         )
         val dataBrokerConnection = connector.connect()
 
-        val dataBrokerTransporter =
-            DataBrokerInvokerV2(dataBrokerConnectorProvider.managedChannel)
-
         `when`("trying to fetch multiple values") {
             val signalIds = listOf(
                 "Vehicle.Acceleration.Longitudinal".toSignalId(),
@@ -88,8 +86,8 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             val randomFloat1 = createRandomFloatDatapoint()
             val randomFloat2 = createRandomFloatDatapoint()
 
-            dataBrokerTransporter.publishValue(signalIds[0], randomFloat1)
-            dataBrokerTransporter.publishValue(signalIds[1], randomFloat2)
+            dataBrokerConnection.kuksaValV2.publishValue(PublishValueRequestV2(signalIds[0], randomFloat1))
+            dataBrokerConnection.kuksaValV2.publishValue(PublishValueRequestV2(signalIds[1], randomFloat2))
 
             val request = FetchValuesRequestV2(signalIds)
             val valuesResponse = dataBrokerConnection.kuksaValV2.fetchValues(request)
@@ -103,9 +101,9 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
         }
 
-        `when`("no ActuationProvider exists for Vehicle.Cabin.Seat.Row1.DriverSide.Heating") {
-            `when`("trying to actuate Vehicle.Cabin.Seat.Row1.DriverSide.Heating") {
-                val signalId = "Vehicle.Cabin.Seat.Row1.DriverSide.Heating".toSignalId()
+        and("no ActuationProvider exists for Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
+            `when`("trying to actuate Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
+                val signalId = "Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling".toSignalId()
                 val value = Types.Value.newBuilder().setInt32(50).build()
 
                 val request = ActuateRequestV2(signalId, value)
@@ -121,7 +119,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
         }
 
-        `when`("an ActuationProvider exists for Vehicle.Cabin.Seat.Row1.DriverSide.Heating") {
+        and("an ActuationProvider exists for Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
             val responseStream = object : StreamObserver<OpenProviderStreamResponse> {
                 override fun onNext(value: OpenProviderStreamResponse) {
                     // unimplemented
@@ -137,7 +135,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
             val requestStream = dataBrokerConnection.kuksaValV2.openProviderStream(responseStream)
 
-            val signalId = "Vehicle.Cabin.Seat.Row1.DriverSide.Heating".toSignalId()
+            val signalId = "Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling".toSignalId()
 
             val provideActuationRequest = ProvideActuationRequest.newBuilder()
                 .addActuatorIdentifiers(signalId)
@@ -147,7 +145,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
                 .build()
             requestStream.onNext(openProviderStreamRequest)
 
-            `when`("trying to actuate Vehicle.Cabin.Seat.Row1.DriverSide.Heating") {
+            `when`("trying to actuate Vehicle.Cabin.Seat.Row1.DriverSide.HeatingCooling") {
                 val value = Types.Value.newBuilder().setInt32(50).build()
 
                 val request = ActuateRequestV2(signalId, value)
@@ -165,7 +163,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             val vssPath = "Vehicle.Acceleration.Lateral"
             val signalId = SignalID.newBuilder().setPath(vssPath).build()
 
-            val initialValue = dataBrokerTransporter.updateRandomFloatValue(vssPath)
+            val initialValue = dataBrokerConnection.kuksaValV2.updateRandomFloatValue(vssPath)
 
             val subscribeRequest = SubscribeRequestV2(listOf(vssPath))
             `when`("Subscribing to the VSS path") {
@@ -179,9 +177,9 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
                     subscribeResponse.entriesMap[vssPath]?.value?.float shouldBe initialValue
                 }
 
-                `when`("The observed VSS path changes") {
+                and("The observed VSS path changes") {
                     val randomFloatDatapoint = createRandomFloatDatapoint()
-                    dataBrokerTransporter.publishValue(signalId, randomFloatDatapoint)
+                    dataBrokerConnection.kuksaValV2.publishValue(PublishValueRequestV2(signalId, randomFloatDatapoint))
 
                     then("The #onEntryChanged callback is triggered with the new value") {
                         val subscribeResponse = responseFlow.first()
@@ -197,7 +195,7 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
 
             `when`("Updating the DataBroker property (VSS path) with a valid Datapoint") {
                 // make sure that the value is set and known to us
-                dataBrokerTransporter.publishValue(signalId, validDatapoint)
+                dataBrokerConnection.kuksaValV2.publishValue(PublishValueRequestV2(signalId, validDatapoint))
 
                 and("When fetching it afterwards") {
                     val fetchRequest = FetchValueRequestV2(signalId)
@@ -312,8 +310,166 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
         }
 
+        `when`("listing metadata for root 'Vehicle'") {
+            val request = ListMetadataRequestV2("Vehicle", "*")
+            val metadataResponse = dataBrokerConnection.kuksaValV2.listMetadata(request)
+
+            then("the metadata response contains signals with metadata details") {
+                metadataResponse.metadataCount shouldBeGreaterThan 0
+                val speedMetadata = metadataResponse.metadataList.find { it.path == "Vehicle.Speed" }
+                speedMetadata shouldNotBe null
+                speedMetadata?.dataType shouldBe Types.DataType.DATA_TYPE_FLOAT
+                speedMetadata?.path shouldBe "Vehicle.Speed"
+            }
+        }
+
+        `when`("listing metadata for an invalid root") {
+            val request = ListMetadataRequestV2("Vehicle.NonExistingRoot", "*")
+            val result = runCatching {
+                dataBrokerConnection.kuksaValV2.listMetadata(request)
+            }
+
+            then("a DataBrokerException containing NOT_FOUND is thrown") {
+                result.isFailure shouldBe true
+                val exception = result.exceptionOrNull()!!
+                exception shouldBe instanceOf(DataBrokerException::class)
+                exception.message shouldContain "NOT_FOUND"
+            }
+        }
+
+        and("a SubscribeByIdRequest with a valid Signal ID") {
+            val vssPath = "Vehicle.Speed"
+            val metadataRequest = ListMetadataRequestV2(vssPath, "*")
+            val metadataResponse = dataBrokerConnection.kuksaValV2.listMetadata(metadataRequest)
+            val speedMetadata = metadataResponse.metadataList.find { it.path == vssPath }
+            val signalId = speedMetadata!!.id
+
+            val initialValue = dataBrokerConnection.kuksaValV2.updateRandomFloatValue(vssPath)
+
+            val subscribeRequest = SubscribeByIdRequestV2(listOf(signalId))
+            `when`("Subscribing to the signal by ID") {
+                val responseFlow = dataBrokerConnection.kuksaValV2.subscribeById(subscribeRequest)
+
+                then("An initial update is sent") {
+                    val subscribeResponse = responseFlow.first()
+                    subscribeResponse shouldNotBe null
+                    subscribeResponse.entriesCount shouldBe 1
+                    subscribeResponse.entriesMap[signalId] shouldNotBe null
+                    subscribeResponse.entriesMap[signalId]?.value?.float shouldBe initialValue
+                }
+
+                and("The observed signal changes") {
+                    val randomFloatDatapoint = createRandomFloatDatapoint()
+                    val signalIDObj = SignalID.newBuilder().setId(signalId).build()
+                    dataBrokerConnection.kuksaValV2.publishValue(
+                        PublishValueRequestV2(signalIDObj, randomFloatDatapoint),
+                    )
+
+                    then("The subscriber flow receives the new value") {
+                        val subscribeResponse = responseFlow.first()
+                        subscribeResponse shouldNotBe null
+                        subscribeResponse.entriesCount shouldBe 1
+                        subscribeResponse.entriesMap[signalId] shouldNotBe null
+                        subscribeResponse.entriesMap[signalId]?.value?.float shouldBe randomFloatDatapoint.value.float
+                    }
+                }
+            }
+        }
+
+        and("A SubscribeByIdRequest with an invalid Signal ID") {
+            val invalidSignalId = 999_999
+            val subscribeRequest = SubscribeByIdRequestV2(listOf(invalidSignalId))
+
+            `when`("Trying to subscribe by INVALID signal ID") {
+                val result = runCatching {
+                    dataBrokerConnection.kuksaValV2.subscribeById(subscribeRequest).first()
+                }
+
+                then("A StatusException with error message 'NOT_FOUND' is thrown") {
+                    result.isFailure shouldBe true
+                    val exception = result.exceptionOrNull()!!
+                    exception shouldBe instanceOf(StatusException::class)
+                    exception.message shouldContain "NOT_FOUND"
+                }
+            }
+        }
+
+        and("no ActuationProvider exists for multiple mirror actuators") {
+            `when`("trying to batch actuate the mirror actuators") {
+                val signalIds = listOf(
+                    "Vehicle.Body.Mirrors.DriverSide.Pan".toSignalId(),
+                    "Vehicle.Body.Mirrors.DriverSide.Tilt".toSignalId(),
+                )
+                val value = Types.Value.newBuilder().setInt32(25).build()
+                val request = BatchActuateRequestV2(signalIds, value)
+
+                val result = runCatching {
+                    dataBrokerConnection.kuksaValV2.batchActuate(request)
+                }
+
+                then("An Exception should be thrown") {
+                    result.isFailure shouldBe true
+                    val exception = result.exceptionOrNull()!!
+                    exception shouldBe instanceOf(DataBrokerException::class)
+                    exception.message shouldContain "UNAVAILABLE"
+                }
+            }
+        }
+
+        and("an ActuationProvider exists for multiple mirror actuators") {
+            val responseStream = object : StreamObserver<OpenProviderStreamResponse> {
+                override fun onNext(value: OpenProviderStreamResponse) {
+                    // unimplemented
+                }
+
+                override fun onError(t: Throwable) {
+                    // unimplemented
+                }
+
+                override fun onCompleted() {
+                    // unimplemented
+                }
+            }
+            val requestStream = dataBrokerConnection.kuksaValV2.openProviderStream(responseStream)
+
+            val signalIds = listOf(
+                "Vehicle.Body.Mirrors.DriverSide.Pan".toSignalId(),
+                "Vehicle.Body.Mirrors.DriverSide.Tilt".toSignalId(),
+            )
+
+            val provideActuationRequest = ProvideActuationRequest.newBuilder()
+                .addAllActuatorIdentifiers(signalIds)
+                .build()
+            val openProviderStreamRequest = OpenProviderStreamRequest.newBuilder()
+                .setProvideActuationRequest(provideActuationRequest)
+                .build()
+            requestStream.onNext(openProviderStreamRequest)
+
+            `when`("trying to batch actuate the mirror actuators") {
+                val value = Types.Value.newBuilder().setInt32(25).build()
+
+                val request = BatchActuateRequestV2(signalIds, value)
+                val result = runCatching {
+                    dataBrokerConnection.kuksaValV2.batchActuate(request)
+                }
+                then("No Exception should be thrown") {
+                    result.isSuccess shouldBe true
+                    result.exceptionOrNull() shouldBe null
+                }
+            }
+        }
+
+        `when`("fetching server information") {
+            val serverInfoResponse = dataBrokerConnection.kuksaValV2.fetchServerInfo()
+
+            then("the server info response contains valid version details") {
+                serverInfoResponse shouldNotBe null
+                serverInfoResponse.version.shouldNotBeEmpty()
+            }
+        }
+
         // this test closes the connection, the connection can't be used afterward anymore
-        `when`("A DisconnectListener is registered successfully") {
+        and("A DisconnectListener is registered successfully") {
             val disconnectListener = mockk<DisconnectListener>(relaxed = true)
             val disconnectListeners = dataBrokerConnection.disconnectListeners
             disconnectListeners.register(disconnectListener)
@@ -327,19 +483,6 @@ class DataBrokerConnectionV2Test : BehaviorSpec({
             }
         }
         // connection is closed at this point
-    }
-    given("A DataBrokerConnection with a mocked ManagedChannel") {
-        val managedChannel = mockk<ManagedChannel>(relaxed = true)
-        every { managedChannel.getState(any()) }.returns(ConnectivityState.READY)
-        val dataBrokerConnection = DataBrokerConnection(managedChannel)
-
-        `when`("Disconnect is called") {
-            dataBrokerConnection.disconnect()
-
-            then("The Channel is shutDown") {
-                verify { managedChannel.shutdownNow() }
-            }
-        }
     }
 })
 

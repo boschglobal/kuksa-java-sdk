@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.4.1](https://github.com/eclipse-kuksa/kuksa-java-sdk/compare/release/release/v0.4.0...release/v0.4.1) (2026-09-17)
+
+### Features
+
+* Update KUKSA VAL v1 and v2 protobuf definitions ([509e4db](https://github.com/eclipse-kuksa/kuksa-java-sdk/commit/509e4db58ca3d992a418be408b09ee1a855b08e7))
+* Update VSS spec to 6.0 and add hierarchical path resolution ([4742565](https://github.com/eclipse-kuksa/kuksa-java-sdk/commit/474256544bcff482a385ff536b495d94596dda47))
+
+### Documentation
+
+* Update broken KDoc class links and add AI usage notice ([8c7ddd0](https://github.com/eclipse-kuksa/kuksa-java-sdk/commit/8c7ddd0767ca7ecef7b6b416b6fdbb8cb9398fdb))
 ## [0.4.0](https://github.com/eclipse-kuksa/kuksa-java-sdk/compare/release/release/v0.3.2...release/v0.4.0) (2025-03-26)
 
 ### Features

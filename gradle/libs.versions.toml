@@ -1,18 +1,19 @@
 [versions]
-androidGradlePlugin = "8.3.2" # Check with detekt table first: https://detekt.dev/docs/introduction/compatibility/
-detekt = "1.23.6"
-dockerJavaCore = "3.4.1"
-dokka = "1.9.20"
-kotlin = "1.9.22"
+androidGradlePlugin = "9.3.2" # Check with detekt table first: https://detekt.dev/docs/introduction/compatibility/
+detekt = "1.23.8"
+dockerJavaCore = "3.7.1"
+dokka = "2.2.0"
+kotlin = "2.4.10"
 ktlint = "0.0" # Maintained inside ktlint.gradle.kts
-grpc = "1.65.1"
-grpcKotlin = "1.4.1"
-protobufGradlePlugin = "0.9.4"
-protobuf = "3.25.3"
-kotest = "5.7.2"
-mockk = "1.13.7"
-kotlinxCoroutines = "1.7.3"
-jvmTarget = "11"
+grpc = "1.84.0"
+grpcKotlin = "1.5.0"
+protobufGradlePlugin = "0.10.0"
+protobuf = "4.36.1"
+kotest = "6.2.4"
+mockk = "1.14.11"
+kotlinxCoroutines = "1.11.0"
+kotlinxSerialization = "1.9.0"
+jvmTarget = "17"
 
 [libraries]
 docker-java-core = { module = "com.github.docker-java:docker-java-core", version.ref = "dockerJavaCore" }
@@ -26,6 +27,7 @@ protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-
 
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+kotlinx-serialization-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-bom", version.ref = "kotlinxSerialization" }
 
 # build specific libraries
 kotest = { group = "io.kotest", name = "kotest-runner-junit5", version.ref = "kotest" }

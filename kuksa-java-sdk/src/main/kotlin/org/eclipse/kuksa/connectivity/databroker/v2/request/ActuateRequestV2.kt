@@ -24,7 +24,7 @@ import org.eclipse.kuksa.proto.v2.Types.Value
 
 /**
  * Used for actuate requests with
- * [org.eclipse.kuksa.connectivity.databroker.DataBrokerConnection.kuksaValV2.actuate].
+ * [org.eclipse.kuksa.connectivity.databroker.v2.KuksaValV2Protocol.actuate].
  */
 data class ActuateRequestV2(val signalId: SignalID, val value: Value) {
     companion object {

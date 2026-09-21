@@ -22,7 +22,7 @@ package org.eclipse.kuksa.connectivity.databroker.v1.request
 import org.eclipse.kuksa.proto.v1.Types
 
 /**
- * Used for fetch requests with [org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerConnection.fetch].
+ * Used for fetch requests with [org.eclipse.kuksa.connectivity.databroker.v1.KuksaValV1Protocol.fetch].
  */
 open class FetchRequest @JvmOverloads constructor(
     override val vssPath: String,

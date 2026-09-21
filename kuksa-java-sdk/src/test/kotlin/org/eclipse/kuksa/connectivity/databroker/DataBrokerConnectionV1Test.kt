@@ -19,19 +19,15 @@
 
 package org.eclipse.kuksa.connectivity.databroker
 
-import io.grpc.ConnectivityState
-import io.grpc.ManagedChannel
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.eclipse.kuksa.connectivity.databroker.docker.DataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.docker.InsecureDataBrokerDockerContainer
 import org.eclipse.kuksa.connectivity.databroker.provider.DataBrokerConnectorProvider
-import org.eclipse.kuksa.connectivity.databroker.v1.DataBrokerInvokerV1
 import org.eclipse.kuksa.connectivity.databroker.v1.extensions.updateRandomFloatValue
 import org.eclipse.kuksa.connectivity.databroker.v1.request.FetchRequest
 import org.eclipse.kuksa.connectivity.databroker.v1.request.SubscribeRequest
@@ -73,14 +69,11 @@ class DataBrokerConnectionV1Test : BehaviorSpec({
         )
         val dataBrokerConnection = connector.connect()
 
-        val dataBrokerInvokerV1 =
-            DataBrokerInvokerV1(dataBrokerConnectorProvider.managedChannel)
-
         and("A request with a valid VSS Path") {
             val vssPath = "Vehicle.Acceleration.Lateral"
             val field = Types.Field.FIELD_VALUE
 
-            val initialValue = dataBrokerInvokerV1.updateRandomFloatValue(vssPath)
+            val initialValue = dataBrokerConnection.kuksaValV1.updateRandomFloatValue(vssPath)
 
             val subscribeRequest = SubscribeRequest(vssPath, field)
             `when`("Subscribing to the VSS path") {
@@ -97,7 +90,7 @@ class DataBrokerConnectionV1Test : BehaviorSpec({
                     }
                 }
 
-                `when`("The observed VSS path changes") {
+                and("The observed VSS path changes") {
                     vssPathListener.reset()
 
                     val random = Random(System.currentTimeMillis())
@@ -305,7 +298,7 @@ class DataBrokerConnectionV1Test : BehaviorSpec({
         }
 
         // this test closes the connection, the connection can't be used afterward anymore
-        `when`("A DisconnectListener is registered successfully") {
+        and("A DisconnectListener is registered successfully") {
             val disconnectListener = mockk<DisconnectListener>(relaxed = true)
             val disconnectListeners = dataBrokerConnection.disconnectListeners
             disconnectListeners.register(disconnectListener)
@@ -319,19 +312,6 @@ class DataBrokerConnectionV1Test : BehaviorSpec({
             }
         }
         // connection is closed at this point
-    }
-    given("A DataBrokerConnection with a mocked ManagedChannel") {
-        val managedChannel = mockk<ManagedChannel>(relaxed = true)
-        every { managedChannel.getState(any()) }.returns(ConnectivityState.READY)
-        val dataBrokerConnection = DataBrokerConnection(managedChannel)
-
-        `when`("Disconnect is called") {
-            dataBrokerConnection.disconnect()
-
-            then("The Channel is shutDown") {
-                verify { managedChannel.shutdownNow() }
-            }
-        }
     }
 })
 
