@@ -22,7 +22,9 @@ package org.eclipse.kuksa.connectivity.databroker.docker
 import com.github.dockerjava.api.command.CreateContainerResponse
 import com.github.dockerjava.api.model.AccessMode
 import com.github.dockerjava.api.model.Bind
+import com.github.dockerjava.api.model.ExposedPort
 import com.github.dockerjava.api.model.HostConfig
+import com.github.dockerjava.api.model.InternetProtocol
 import com.github.dockerjava.api.model.Volume
 import org.eclipse.kuksa.test.TestResourceFile
 
@@ -49,7 +51,9 @@ class SecureDataBrokerDockerContainer(
         return dockerClient.createContainerCmd("$repository:$tag")
             .withName("${containerName}_${System.nanoTime()}")
             .withHostConfig(hostConfig)
+            .withExposedPorts(ExposedPort(port, InternetProtocol.TCP))
             .withCmd(
+                "--address", "0.0.0.0",
                 "--port", "$port",
                 "--tls-cert", "$tlsMount/Server.pem",
                 "--tls-private-key", "$tlsMount/Server.key",

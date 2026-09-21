@@ -20,6 +20,8 @@
 package org.eclipse.kuksa.connectivity.databroker.docker
 
 import com.github.dockerjava.api.command.CreateContainerResponse
+import com.github.dockerjava.api.model.ExposedPort
+import com.github.dockerjava.api.model.InternetProtocol
 
 // no tls, no authentication
 class InsecureDataBrokerDockerContainer(
@@ -31,7 +33,9 @@ class InsecureDataBrokerDockerContainer(
         return dockerClient.createContainerCmd("$repository:$tag")
             .withName("${containerName}_${System.nanoTime()}")
             .withHostConfig(hostConfig)
+            .withExposedPorts(ExposedPort(port, InternetProtocol.TCP))
             .withCmd(
+                "--address", "0.0.0.0",
                 "--port", "$port",
                 "--insecure",
                 "--vss", vssMount,
