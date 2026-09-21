@@ -22,7 +22,6 @@ package org.eclipse.kuksa.connectivity.databroker.docker
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.api.command.CreateContainerResponse
 import com.github.dockerjava.api.command.PullImageResultCallback
-import com.github.dockerjava.api.command.WaitContainerResultCallback
 import com.github.dockerjava.api.exception.NotModifiedException
 import com.github.dockerjava.api.model.AccessMode
 import com.github.dockerjava.api.model.Bind
@@ -168,10 +167,6 @@ abstract class DataBrokerDockerContainer(
     private fun startContainer(containerId: String) {
         try {
             dockerClient.startContainerCmd(containerId).exec()
-
-            dockerClient.waitContainerCmd(containerId)
-                .exec(WaitContainerResultCallback())
-                .awaitCompletion(timeout.toLong(), TimeUnit.SECONDS)
         } catch (_: NotModifiedException) {
             // thrown when a container is already started
         }
